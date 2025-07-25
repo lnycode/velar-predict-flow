@@ -25,7 +25,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 
                 <div className="hidden sm:block">
                   <h2 className="text-lg font-semibold text-foreground">
-                    Migraine Intelligence Dashboard
+                    Velar Dashboard
                   </h2>
                   <p className="text-sm text-muted-foreground">
                     Real-time weather-based predictions
