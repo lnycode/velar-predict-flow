@@ -19,10 +19,8 @@ export function AppLayout({ children }: AppLayoutProps) {
           <header className="sticky top-0 z-50 h-16 border-b border-border/50 bg-card/30 backdrop-blur-xl">
             <div className="flex items-center justify-between h-full px-4">
               <div className="flex items-center gap-4">
-                <SidebarTrigger asChild>
-                  <Button variant="ghost" size="sm" className="lg:hidden">
-                    <Menu className="w-5 h-5" />
-                  </Button>
+                <SidebarTrigger className="lg:hidden p-2 hover:bg-secondary/50 rounded-md">
+                  <Menu className="w-5 h-5" />
                 </SidebarTrigger>
                 
                 <div className="hidden sm:block">
