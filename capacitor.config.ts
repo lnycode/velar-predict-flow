@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.242be1324c3f416da396458309c7f49b',
+  appId: 'com.velar.migraineprediction',
   appName: 'velar-predict-flow',
   webDir: 'dist',
   server: {

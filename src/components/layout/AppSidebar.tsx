@@ -9,6 +9,7 @@ import {
   Brain,
   CloudRain
 } from "lucide-react";
+import velarLogo from "@/assets/velar-logo.png";
 import {
   Sidebar,
   SidebarContent,
@@ -82,10 +83,10 @@ export function AppSidebar() {
     const baseClasses = "group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 relative overflow-hidden";
     
     if (isActive(path)) {
-      return `${baseClasses} bg-gradient-primary text-primary-foreground shadow-glow`;
+      return `${baseClasses} bg-primary/20 text-primary border border-primary/30 shadow-glow`;
     }
     
-    return `${baseClasses} text-muted-foreground hover:text-foreground hover:bg-secondary/50`;
+    return `${baseClasses} text-foreground hover:text-foreground hover:bg-primary/10`;
   };
 
   return (
@@ -94,8 +95,8 @@ export function AppSidebar() {
         {/* Velar Logo */}
         <div className="mb-8 flex items-center gap-3">
           <div className="relative">
-            <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center animate-pulse-glow">
-              <span className="text-xl font-bold text-primary-foreground">V</span>
+            <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center animate-pulse-glow p-1">
+              <img src={velarLogo} alt="Velar" className="w-full h-full object-contain" />
             </div>
           </div>
           {sidebarOpen && (
