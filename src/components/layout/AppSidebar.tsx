@@ -86,7 +86,7 @@ export function AppSidebar() {
       return `${baseClasses} bg-primary/20 text-primary border border-primary/30 shadow-glow`;
     }
     
-    return `${baseClasses} text-foreground hover:text-foreground hover:bg-primary/10`;
+    return `${baseClasses} text-gray-300 hover:text-white hover:bg-primary/10`;
   };
 
   return (
@@ -101,8 +101,8 @@ export function AppSidebar() {
           </div>
           {sidebarOpen && (
             <div className="animate-fade-in-up">
-              <h1 className="text-xl font-bold text-foreground">Velar</h1>
-              <p className="text-xs text-muted-foreground">Migraine Intelligence</p>
+              <h1 className="text-xl font-bold text-white">Velar</h1>
+              <p className="text-xs text-gray-400">Dashboard</p>
             </div>
           )}
         </div>
@@ -147,7 +147,7 @@ export function AppSidebar() {
         {/* Footer */}
         {sidebarOpen && (
           <div className="mt-auto pt-6 animate-fade-in-up">
-            <div className="text-xs text-muted-foreground text-center">
+            <div className="text-xs text-gray-400 text-center">
               <p>Velar AI v2.0</p>
               <p className="mt-1">Advanced Migraine Prediction</p>
             </div>
