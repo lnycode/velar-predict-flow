@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { 
-  LayoutDashboard, 
+  Orbit, 
   History, 
-  Settings, 
+  Settings2, 
   Calendar,
-  BarChart3,
-  Brain,
-  CloudRain
+  TrendingUp,
+  Zap,
+  Cloud,
+  Satellite,
+  Globe
 } from "lucide-react";
 import velarLogo from "@/assets/velar-logo.png";
 import {
@@ -24,46 +26,46 @@ import {
 
 const navigationItems = [
   { 
-    title: "Dashboard", 
+    title: "Mission Control", 
     url: "/", 
-    icon: LayoutDashboard,
-    description: "Overview & Live Alerts"
+    icon: Orbit,
+    description: "Neural Observatory"
   },
   { 
     title: "Calendar", 
     url: "/calendar", 
     icon: Calendar,
-    description: "Track Episodes"
+    description: "Episode Timeline"
   },
   { 
     title: "History", 
     url: "/history", 
     icon: History,
-    description: "Past Records"
+    description: "Neural Archives"
   },
   { 
     title: "Forecast", 
     url: "/forecast", 
-    icon: CloudRain,
-    description: "7-Day Prediction"
+    icon: Satellite,
+    description: "Prediction Matrix"
   },
   { 
     title: "Analytics", 
     url: "/analytics", 
-    icon: BarChart3,
-    description: "Pattern Analysis"
+    icon: TrendingUp,
+    description: "Pattern Recognition"
   },
   { 
     title: "AI Insights", 
     url: "/insights", 
-    icon: Brain,
-    description: "Smart Recommendations"
+    icon: Zap,
+    description: "Neural Intelligence"
   },
   { 
     title: "Settings", 
     url: "/settings", 
-    icon: Settings,
-    description: "Preferences"
+    icon: Settings2,
+    description: "System Config"
   }
 ];
 
@@ -90,7 +92,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className="border-r border-border/50 bg-card/30 backdrop-blur-xl">
+    <Sidebar className="border-r border-white/10 bg-black/20 backdrop-blur-xl">
       <SidebarContent className="p-4">
         {/* Velar Logo */}
         <div className="mb-8 flex items-center gap-3">
@@ -102,13 +104,14 @@ export function AppSidebar() {
           {sidebarOpen && (
             <div className="animate-fade-in-up">
               <h1 className="text-xl font-bold text-white">Velar</h1>
-              <p className="text-xs text-gray-400">Dashboard</p>
+              <p className="text-xs text-cyan-400">Neural Interface</p>
             </div>
           )}
         </div>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-primary font-semibold mb-4">
+          <SidebarGroupLabel className="text-cyan-400 font-semibold mb-4 flex items-center gap-2">
+            <Globe className="w-4 h-4" />
             Navigation
           </SidebarGroupLabel>
           
@@ -148,8 +151,8 @@ export function AppSidebar() {
         {sidebarOpen && (
           <div className="mt-auto pt-6 animate-fade-in-up">
             <div className="text-xs text-gray-400 text-center">
-              <p>Velar AI v2.0</p>
-              <p className="mt-1">Advanced Migraine Prediction</p>
+              <p className="text-cyan-400 font-medium">Velar Neural AI v3.0</p>
+              <p className="mt-1">Advanced Predictive Intelligence</p>
             </div>
           </div>
         )}
