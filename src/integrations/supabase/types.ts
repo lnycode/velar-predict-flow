@@ -14,16 +14,92 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_predictions: {
+        Row: {
+          actual_outcome: boolean | null
+          confidence: number
+          created_at: string
+          id: string
+          predicted_for: string
+          prediction_factors: Json | null
+          prediction_type: string
+          risk_level: number
+          user_id: string
+          weather_data: Json | null
+        }
+        Insert: {
+          actual_outcome?: boolean | null
+          confidence: number
+          created_at?: string
+          id?: string
+          predicted_for: string
+          prediction_factors?: Json | null
+          prediction_type: string
+          risk_level: number
+          user_id: string
+          weather_data?: Json | null
+        }
+        Update: {
+          actual_outcome?: boolean | null
+          confidence?: number
+          created_at?: string
+          id?: string
+          predicted_for?: string
+          prediction_factors?: Json | null
+          prediction_type?: string
+          risk_level?: number
+          user_id?: string
+          weather_data?: Json | null
+        }
+        Relationships: []
+      }
+      email_notifications: {
+        Row: {
+          content: string
+          id: string
+          metadata: Json | null
+          notification_type: string
+          sent_at: string | null
+          status: string | null
+          subject: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          id?: string
+          metadata?: Json | null
+          notification_type: string
+          sent_at?: string | null
+          status?: string | null
+          subject: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          id?: string
+          metadata?: Json | null
+          notification_type?: string
+          sent_at?: string | null
+          status?: string | null
+          subject?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       migraine_entries: {
         Row: {
           created_at: string | null
+          duration: number | null
+          effectiveness: number | null
           forecast_match: boolean | null
           humidity: number | null
           id: string
           intensity: number | null
           location: string | null
+          medication_taken: string | null
           note: string | null
           pressure: number | null
+          severity: number | null
           temperature: number | null
           trigger_detected: boolean | null
           user_id: string
@@ -31,13 +107,17 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          duration?: number | null
+          effectiveness?: number | null
           forecast_match?: boolean | null
           humidity?: number | null
           id: string
           intensity?: number | null
           location?: string | null
+          medication_taken?: string | null
           note?: string | null
           pressure?: number | null
+          severity?: number | null
           temperature?: number | null
           trigger_detected?: boolean | null
           user_id: string
@@ -45,17 +125,135 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          duration?: number | null
+          effectiveness?: number | null
           forecast_match?: boolean | null
           humidity?: number | null
           id?: string
           intensity?: number | null
           location?: string | null
+          medication_taken?: string | null
           note?: string | null
           pressure?: number | null
+          severity?: number | null
           temperature?: number | null
           trigger_detected?: boolean | null
           user_id?: string
           weather_type?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          ai_predictions_enabled: boolean | null
+          created_at: string
+          current_medications: string | null
+          email: string
+          email_notifications: boolean | null
+          first_name: string | null
+          id: string
+          known_triggers: string | null
+          last_name: string | null
+          location_lat: number | null
+          location_lng: number | null
+          location_name: string | null
+          migraine_type: string | null
+          subscription_active: boolean | null
+          subscription_end: string | null
+          subscription_tier: string | null
+          timezone: string | null
+          updated_at: string
+          user_id: string
+          weather_alerts: boolean | null
+          weather_sensitivity: string | null
+        }
+        Insert: {
+          ai_predictions_enabled?: boolean | null
+          created_at?: string
+          current_medications?: string | null
+          email: string
+          email_notifications?: boolean | null
+          first_name?: string | null
+          id?: string
+          known_triggers?: string | null
+          last_name?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
+          location_name?: string | null
+          migraine_type?: string | null
+          subscription_active?: boolean | null
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          timezone?: string | null
+          updated_at?: string
+          user_id: string
+          weather_alerts?: boolean | null
+          weather_sensitivity?: string | null
+        }
+        Update: {
+          ai_predictions_enabled?: boolean | null
+          created_at?: string
+          current_medications?: string | null
+          email?: string
+          email_notifications?: boolean | null
+          first_name?: string | null
+          id?: string
+          known_triggers?: string | null
+          last_name?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
+          location_name?: string | null
+          migraine_type?: string | null
+          subscription_active?: boolean | null
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          timezone?: string | null
+          updated_at?: string
+          user_id?: string
+          weather_alerts?: boolean | null
+          weather_sensitivity?: string | null
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          tier: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          tier?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          tier?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
