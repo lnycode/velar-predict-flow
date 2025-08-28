@@ -5,21 +5,32 @@ import { Brain, Lightbulb, Target, TrendingUp, Calendar, Clock, MapPin } from "l
 
 export default function InsightsPage() {
   return (
-    <div className="space-y-6 animate-fade-in-up">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">AI Insights & Recommendations</h1>
-        <p className="text-muted-foreground">Personalized intelligence powered by machine learning</p>
+    <div className="space-y-8 animate-fade-in-up">
+      <div className="relative">
+        <div className="absolute inset-0 bg-gradient-primary/10 blur-3xl rounded-full" />
+        <div className="relative">
+          <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+            Neural Intelligence Center
+          </h1>
+          <p className="text-cyan-400 text-lg">Advanced AI-powered migraine analysis and predictive insights</p>
+          <div className="flex items-center gap-2 mt-4">
+            <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse-glow" />
+            <span className="text-sm text-green-400 font-medium">AI Models Active • Real-time Analysis</span>
+          </div>
+        </div>
       </div>
 
       {/* Key Insights */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="velar-card border-border/50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Brain className="w-5 h-5 text-primary" />
-              Pattern Recognition
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <Card className="velar-card border-primary/20 shadow-glow hover:shadow-primary/20 transition-all duration-300 group">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-3 text-xl">
+              <div className="p-2 bg-gradient-primary rounded-lg group-hover:animate-pulse-glow">
+                <Brain className="w-6 h-6 text-white" />
+              </div>
+              <span className="bg-gradient-primary bg-clip-text text-transparent">Neural Pattern Recognition</span>
             </CardTitle>
-            <CardDescription>AI-detected patterns in your migraine data</CardDescription>
+            <CardDescription className="text-cyan-400">Advanced AI analysis of your migraine patterns and triggers</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
@@ -66,13 +77,15 @@ export default function InsightsPage() {
           </CardContent>
         </Card>
 
-        <Card className="velar-card border-border/50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Lightbulb className="w-5 h-5 text-warning" />
-              Smart Recommendations
+        <Card className="velar-card border-cyan-400/20 shadow-glow hover:shadow-cyan-400/20 transition-all duration-300 group">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-3 text-xl">
+              <div className="p-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg group-hover:animate-pulse-glow">
+                <Lightbulb className="w-6 h-6 text-white" />
+              </div>
+              <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Intelligent Recommendations</span>
             </CardTitle>
-            <CardDescription>Personalized suggestions to reduce migraine frequency</CardDescription>
+            <CardDescription className="text-cyan-400">AI-powered personalized strategies for migraine prevention</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
@@ -120,13 +133,16 @@ export default function InsightsPage() {
       </div>
 
       {/* Prediction Model */}
-      <Card className="velar-card border-border/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target className="w-5 h-5 text-primary" />
-            AI Prediction Model Performance
+      <Card className="velar-card border-gradient-primary/30 shadow-2xl hover:shadow-primary/30 transition-all duration-500">
+        <CardHeader className="pb-6 relative">
+          <div className="absolute top-4 right-4 w-12 h-12 bg-gradient-primary/20 rounded-full animate-pulse-glow" />
+          <CardTitle className="flex items-center gap-3 text-2xl">
+            <div className="p-3 bg-gradient-primary rounded-xl animate-pulse-glow">
+              <Target className="w-7 h-7 text-white" />
+            </div>
+            <span className="bg-gradient-primary bg-clip-text text-transparent">Predictive AI Performance Matrix</span>
           </CardTitle>
-          <CardDescription>How accurately our AI predicts your migraines</CardDescription>
+          <CardDescription className="text-cyan-400 text-lg">Real-time accuracy metrics from our advanced neural networks</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -158,13 +174,15 @@ export default function InsightsPage() {
       </Card>
 
       {/* Trend Analysis */}
-      <Card className="velar-card border-border/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-success" />
-            Progress Tracking
+      <Card className="velar-card border-green-400/20 shadow-glow hover:shadow-green-400/20 transition-all duration-300 group">
+        <CardHeader className="pb-6">
+          <CardTitle className="flex items-center gap-3 text-xl">
+            <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg group-hover:animate-pulse-glow">
+              <TrendingUp className="w-6 h-6 text-white" />
+            </div>
+            <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">Neural Progress Analytics</span>
           </CardTitle>
-          <CardDescription>Your migraine management journey</CardDescription>
+          <CardDescription className="text-cyan-400">Advanced tracking of your migraine management evolution</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

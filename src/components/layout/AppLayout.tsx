@@ -16,27 +16,33 @@ export function AppLayout({ children }: AppLayoutProps) {
         
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <header className="sticky top-0 z-50 h-16 border-b border-border/50 bg-card/30 backdrop-blur-xl">
-            <div className="flex items-center justify-between h-full px-4">
+          <header className="sticky top-0 z-50 h-16 border-b border-white/10 bg-black/20 backdrop-blur-xl">
+            <div className="flex items-center justify-between h-full px-6">
               <div className="flex items-center gap-4">
-                <SidebarTrigger className="lg:hidden p-2 hover:bg-secondary/50 rounded-md">
-                  <Menu className="w-5 h-5" />
+                <SidebarTrigger className="lg:hidden p-2 hover:bg-primary/10 rounded-lg transition-colors">
+                  <Menu className="w-5 h-5 text-white" />
                 </SidebarTrigger>
                 
                 <div className="hidden sm:block">
-                  <h2 className="text-lg font-semibold text-foreground">
-                    Velar Dashboard
+                  <h2 className="text-lg font-bold text-white bg-gradient-primary bg-clip-text text-transparent">
+                    Velar Neural Interface
                   </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Real-time weather-based predictions
+                  <p className="text-sm text-cyan-400">
+                    Advanced Predictive Intelligence System
                   </p>
                 </div>
               </div>
               
-              <div className="flex items-center gap-2">
-                {/* Emergency Alert Badge */}
-                <div className="hidden md:flex items-center gap-2 bg-warning/20 text-warning px-3 py-1 rounded-full border border-warning/30">
-                  <div className="w-2 h-2 bg-warning rounded-full animate-pulse" />
+              <div className="flex items-center gap-3">
+                {/* Status Indicator */}
+                <div className="hidden md:flex items-center gap-2 bg-gradient-primary/20 text-cyan-400 px-4 py-2 rounded-full border border-cyan-400/30 backdrop-blur-sm">
+                  <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse-glow" />
+                  <span className="text-xs font-medium">Neural Network Active</span>
+                </div>
+                
+                {/* Risk Alert */}
+                <div className="flex items-center gap-2 bg-gradient-to-r from-orange-500/20 to-red-500/20 text-orange-400 px-3 py-1.5 rounded-full border border-orange-500/30">
+                  <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />
                   <span className="text-xs font-medium">High Risk Alert</span>
                 </div>
               </div>

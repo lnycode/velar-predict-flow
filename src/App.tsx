@@ -54,7 +54,7 @@ const App = () => (
                 </ProtectedRoute>
               } />
               <Route path="/insights" element={
-                <ProtectedRoute requireSubscription>
+                <ProtectedRoute>
                   <InsightsPage />
                 </ProtectedRoute>
               } />
