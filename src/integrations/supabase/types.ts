@@ -111,7 +111,7 @@ export type Database = {
           effectiveness?: number | null
           forecast_match?: boolean | null
           humidity?: number | null
-          id: string
+          id?: string
           intensity?: number | null
           location?: string | null
           medication_taken?: string | null

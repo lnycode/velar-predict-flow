@@ -90,7 +90,7 @@ export const MigraineDiary: React.FC<MigraineDiaryProps> = ({ onEntryAdded }) =>
     try {
       const { error } = await supabase
         .from('migraine_entries')
-        .insert({
+        .insert([{
           user_id: user.id,
           severity: formData.severity[0],
           intensity: formData.intensity[0],
@@ -102,7 +102,7 @@ export const MigraineDiary: React.FC<MigraineDiaryProps> = ({ onEntryAdded }) =>
             : null,
           effectiveness: formData.effectiveness[0],
           trigger_detected: formData.selectedTriggers.length > 0
-        });
+        }] as any);
 
       if (error) throw error;
 
