@@ -92,8 +92,8 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className="border-r border-white/10 bg-black/20 backdrop-blur-xl">
-      <SidebarContent className="p-4">
+    <Sidebar className="border-r border-white/10 bg-black/90 backdrop-blur-xl">
+      <SidebarContent className="p-4 bg-transparent">
         {/* Velar Logo */}
         <div className="mb-8 flex items-center gap-3">
           <div className="relative">
