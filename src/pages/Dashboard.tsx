@@ -14,6 +14,9 @@ import {
   Calendar, Activity, TrendingUp, Brain, 
   ArrowRight, Clock, AlertTriangle 
 } from 'lucide-react';
+import { VoiceCommandPanel } from "@/components/unique/VoiceCommandPanel";
+import { BiometricIntegration } from "@/components/unique/BiometricIntegration";
+import { SocialResearchHub } from "@/components/unique/SocialResearchHub";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -275,6 +278,13 @@ export default function Dashboard() {
 
           <Statistics />
         </div>
+      </div>
+
+      {/* Premium Features Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <VoiceCommandPanel />
+        <BiometricIntegration />
+        <SocialResearchHub />
       </div>
 
       {/* Recent Activity */}
