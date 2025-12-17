@@ -3,7 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WeatherAlertPanel } from "@/components/alerts/WeatherAlertPanel";
-import { CloudRain, Sun, Cloud, CloudSnow, Wind, Thermometer, Droplets, Gauge, Bell, Calendar } from "lucide-react";
+import { VoiceAssistant } from "@/components/voice/VoiceAssistant";
+import { CloudRain, Sun, Cloud, CloudSnow, Wind, Thermometer, Droplets, Gauge, Bell, Calendar, Mic } from "lucide-react";
 
 export default function ForecastPage() {
   const forecastData = [
@@ -121,10 +122,14 @@ export default function ForecastPage() {
       </div>
 
       <Tabs defaultValue="alerts" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="alerts" className="flex items-center gap-2">
             <Bell className="w-4 h-4" />
             Real-Time Alerts
+          </TabsTrigger>
+          <TabsTrigger value="assistant" className="flex items-center gap-2">
+            <Mic className="w-4 h-4" />
+            Voice Assistant
           </TabsTrigger>
           <TabsTrigger value="forecast" className="flex items-center gap-2">
             <Calendar className="w-4 h-4" />
@@ -134,6 +139,10 @@ export default function ForecastPage() {
 
         <TabsContent value="alerts" className="space-y-6">
           <WeatherAlertPanel variant="full" showHistory={true} />
+        </TabsContent>
+
+        <TabsContent value="assistant" className="space-y-6">
+          <VoiceAssistant />
         </TabsContent>
 
         <TabsContent value="forecast" className="space-y-6">
