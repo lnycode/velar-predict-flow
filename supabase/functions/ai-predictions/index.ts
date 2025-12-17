@@ -1,11 +1,25 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const predictionRequestSchema = z.object({
+  location: z.object({
+    lat: z.number().min(-90).max(90),
+    lng: z.number().min(-180).max(180)
+  }),
+  userProfile: z.object({
+    weatherSensitivity: z.enum(['low', 'medium', 'high']),
+    migraineTriggers: z.array(z.string().max(100)).max(50),
+    recentEpisodes: z.number().min(0).max(1000)
+  })
+});
 
 interface WeatherData {
   temperature: number;
@@ -14,15 +28,6 @@ interface WeatherData {
   conditions: string;
   uvIndex?: number;
   windSpeed?: number;
-}
-
-interface PredictionRequest {
-  location: { lat: number; lng: number };
-  userProfile: {
-    weatherSensitivity: string;
-    migraineTriggers: string[];
-    recentEpisodes: number;
-  };
 }
 
 serve(async (req) => {
@@ -46,7 +51,22 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    const { location, userProfile } = await req.json() as PredictionRequest;
+    // Validate input
+    const body = await req.json();
+    const validationResult = predictionRequestSchema.safeParse(body);
+    
+    if (!validationResult.success) {
+      console.error('Validation error:', validationResult.error.errors);
+      return new Response(JSON.stringify({ 
+        error: "Invalid request data",
+        details: validationResult.error.errors.map(e => e.message)
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { location, userProfile } = validationResult.data;
 
     // Get weather data from OpenWeatherMap (you'll need to add this API key too)
     const weatherResponse = await fetch(

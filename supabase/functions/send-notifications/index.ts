@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { Resend } from "npm:resend@2.0.0";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,18 +10,25 @@ const corsHeaders = {
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
-interface NotificationRequest {
-  type: 'weather_alert' | 'pattern_detected' | 'medication_reminder' | 'weekly_report';
-  recipientEmail: string;
-  data: {
-    riskLevel?: number;
-    factors?: string[];
-    recommendation?: string;
-    patternDetails?: string;
-    medicationName?: string;
-    reportData?: any;
-  };
-}
+// Input validation schema
+const notificationRequestSchema = z.object({
+  type: z.enum(['weather_alert', 'pattern_detected', 'medication_reminder', 'weekly_report']),
+  recipientEmail: z.string().email().max(255),
+  data: z.object({
+    userId: z.string().uuid().optional(),
+    riskLevel: z.number().min(1).max(10).optional(),
+    factors: z.array(z.string().max(200)).max(20).optional(),
+    recommendation: z.string().max(1000).optional(),
+    patternDetails: z.string().max(2000).optional(),
+    medicationName: z.string().max(200).optional(),
+    reportData: z.object({
+      episodes: z.number().min(0).max(1000).optional(),
+      avgDuration: z.number().min(0).max(1000).optional(),
+      accuracy: z.number().min(0).max(100).optional(),
+      predictions: z.number().min(0).max(10000).optional()
+    }).optional()
+  })
+});
 
 const getEmailTemplate = (type: string, data: any) => {
   const baseStyle = `
@@ -133,7 +141,23 @@ serve(async (req) => {
 
     console.log('Authenticated user:', userData.user.id);
 
-    const { type, recipientEmail, data } = await req.json() as NotificationRequest;
+    // Validate input
+    const body = await req.json();
+    const validationResult = notificationRequestSchema.safeParse(body);
+    
+    if (!validationResult.success) {
+      console.error('Validation error:', validationResult.error.errors);
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: "Invalid request data",
+        details: validationResult.error.errors.map(e => e.message)
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { type, recipientEmail, data } = validationResult.data;
 
     const subjects = {
       weather_alert: `⚠️ Migraine Risk Alert - Level ${data.riskLevel}/10`,
