@@ -57,7 +57,7 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("Error in customer-portal:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: "An error occurred while accessing the customer portal" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

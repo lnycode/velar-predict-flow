@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { migraineDiarySchema } from '@/lib/validations';
 import { Plus, X, Calendar, Clock, MapPin } from 'lucide-react';
 
 interface MigraineDiaryProps {
@@ -88,20 +89,46 @@ export const MigraineDiary: React.FC<MigraineDiaryProps> = ({ onEntryAdded }) =>
 
     setIsSubmitting(true);
     try {
+      // Validate form data before submission
+      const validationResult = migraineDiarySchema.safeParse({
+        severity: formData.severity[0],
+        intensity: formData.intensity[0],
+        duration: formData.duration,
+        location: formData.location,
+        note: formData.note,
+        selectedTriggers: formData.selectedTriggers,
+        selectedMedications: formData.selectedMedications,
+        customTrigger: formData.customTrigger,
+        customMedication: formData.customMedication,
+        effectiveness: formData.effectiveness[0],
+      });
+
+      if (!validationResult.success) {
+        const firstError = validationResult.error.errors[0];
+        toast({
+          title: 'Validierungsfehler',
+          description: firstError.message,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const validatedData = validationResult.data;
+
       const { error } = await supabase
         .from('migraine_entries')
         .insert([{
           user_id: user.id,
-          severity: formData.severity[0],
-          intensity: formData.intensity[0],
-          duration: formData.duration,
-          location: formData.location || null,
-          note: formData.note || null,
-          medication_taken: formData.selectedMedications.length > 0 
-            ? formData.selectedMedications.join(', ') 
+          severity: validatedData.severity,
+          intensity: validatedData.intensity,
+          duration: validatedData.duration,
+          location: validatedData.location || null,
+          note: validatedData.note || null,
+          medication_taken: validatedData.selectedMedications.length > 0 
+            ? validatedData.selectedMedications.join(', ') 
             : null,
-          effectiveness: formData.effectiveness[0],
-          trigger_detected: formData.selectedTriggers.length > 0
+          effectiveness: validatedData.effectiveness,
+          trigger_detected: validatedData.selectedTriggers.length > 0
         }] as any);
 
       if (error) throw error;
@@ -127,9 +154,10 @@ export const MigraineDiary: React.FC<MigraineDiaryProps> = ({ onEntryAdded }) =>
 
       onEntryAdded?.();
     } catch (error: any) {
+      console.error('Diary entry save error:', error);
       toast({
         title: 'Fehler',
-        description: error.message || 'Fehler beim Speichern des Eintrags',
+        description: 'Fehler beim Speichern des Eintrags. Bitte versuchen Sie es erneut.',
         variant: 'destructive',
       });
     } finally {

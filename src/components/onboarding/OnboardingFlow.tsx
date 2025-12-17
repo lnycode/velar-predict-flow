@@ -10,6 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { profileSchema } from '@/lib/validations';
 import { 
   User, MapPin, Zap, Brain, Heart, CheckCircle, 
   ArrowRight, ArrowLeft, Star, AlertTriangle 
@@ -94,20 +95,45 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
 
     setIsSubmitting(true);
     try {
+      // Validate form data before submission
+      const validationResult = profileSchema.safeParse({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        locationName: formData.locationName,
+        timezone: formData.timezone,
+        weatherSensitivity: formData.weatherSensitivity,
+        knownTriggers: formData.knownTriggers,
+        customTriggers: formData.customTriggers,
+        migrainetType: formData.migrainetType,
+        currentMedications: formData.currentMedications,
+        frequencyPerMonth: formData.frequencyPerMonth,
+      });
+
+      if (!validationResult.success) {
+        const firstError = validationResult.error.errors[0];
+        toast({
+          title: 'Validierungsfehler',
+          description: firstError.message,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const validatedData = validationResult.data;
       const allTriggers = [
-        ...formData.knownTriggers,
-        ...(formData.customTriggers ? formData.customTriggers.split(',').map(t => t.trim()) : [])
-      ].filter(t => t.length > 0);
+        ...validatedData.knownTriggers,
+        ...(validatedData.customTriggers ? validatedData.customTriggers.split(',').map(t => t.trim()).filter(t => t.length > 0 && t.length <= 50) : [])
+      ].slice(0, 50); // Max 50 triggers
 
       await updateProfile({
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        location_name: formData.locationName,
-        timezone: formData.timezone,
-        weather_sensitivity: formData.weatherSensitivity,
+        first_name: validatedData.firstName,
+        last_name: validatedData.lastName || '',
+        location_name: validatedData.locationName,
+        timezone: validatedData.timezone,
+        weather_sensitivity: validatedData.weatherSensitivity,
         known_triggers: allTriggers.join(', '),
-        migraine_type: formData.migrainetType,
-        current_medications: formData.currentMedications,
+        migraine_type: validatedData.migrainetType,
+        current_medications: validatedData.currentMedications || '',
       });
 
       toast({
@@ -117,9 +143,10 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
 
       onComplete?.();
     } catch (error: any) {
+      console.error('Profile save error:', error);
       toast({
         title: 'Fehler',
-        description: error.message || 'Fehler beim Speichern der Daten',
+        description: 'Fehler beim Speichern der Daten. Bitte versuchen Sie es erneut.',
         variant: 'destructive',
       });
     } finally {
