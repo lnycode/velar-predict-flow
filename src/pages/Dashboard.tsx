@@ -5,6 +5,7 @@ import { MigrainFrequencyChart } from "@/components/dashboard/MigrainFrequencyCh
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { Statistics } from "@/components/dashboard/Statistics";
 import { RiskForecast } from "@/components/forecast/RiskForecast";
+import { WeatherAlertPanel } from "@/components/alerts/WeatherAlertPanel";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -239,8 +240,11 @@ export default function Dashboard() {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Forecast */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-6">
           <RiskForecast />
+          
+          {/* Weather Alert Panel - Compact */}
+          <WeatherAlertPanel variant="compact" showHistory={false} />
         </div>
 
         {/* Right Column - Quick Actions & Stats */}
@@ -266,10 +270,10 @@ export default function Dashboard() {
                 </Button>
               </Link>
               
-              <Link to="/settings" className="block">
+              <Link to="/forecast" className="block">
                 <Button variant="outline" className="w-full justify-start">
                   <Brain className="w-4 h-4 mr-2" />
-                  KI-Einstellungen
+                  Weather Alerts
                   <ArrowRight className="w-4 h-4 ml-auto" />
                 </Button>
               </Link>
