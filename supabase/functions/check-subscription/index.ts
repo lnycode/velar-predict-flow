@@ -120,7 +120,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error in check-subscription:", error);
     return new Response(JSON.stringify({ 
-      error: error.message,
+      error: "An error occurred while checking subscription status",
       subscribed: false,
       tier: "free"
     }), {

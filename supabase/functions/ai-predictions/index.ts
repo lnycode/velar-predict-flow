@@ -168,7 +168,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in ai-predictions function:', error);
     return new Response(JSON.stringify({ 
-      error: error.message,
+      error: "An error occurred while generating predictions",
       prediction: {
         riskLevel: 3,
         confidence: 0.5,

@@ -177,7 +177,7 @@ serve(async (req) => {
     console.error('Error in send-notifications function:', error);
     return new Response(JSON.stringify({ 
       success: false,
-      error: error.message 
+      error: "An error occurred while sending the notification"
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
