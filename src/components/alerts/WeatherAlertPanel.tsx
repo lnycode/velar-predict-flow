@@ -306,7 +306,7 @@ export function WeatherAlertPanel({ variant = 'full', showHistory = true }: Weat
                       <Thermometer className="w-4 h-4 text-orange-500" />
                       <span className="text-xs text-muted-foreground">Temperature</span>
                     </div>
-                    <div className="text-2xl font-bold">{weatherData.temperature}°C</div>
+                    <div className="text-2xl font-bold">{weatherData.temperature.toFixed(1)}°C</div>
                   </div>
                   
                   <div className="p-4 rounded-lg bg-secondary/20">
@@ -314,7 +314,7 @@ export function WeatherAlertPanel({ variant = 'full', showHistory = true }: Weat
                       <Droplets className="w-4 h-4 text-blue-500" />
                       <span className="text-xs text-muted-foreground">Humidity</span>
                     </div>
-                    <div className="text-2xl font-bold">{weatherData.humidity}%</div>
+                    <div className="text-2xl font-bold">{weatherData.humidity.toFixed(1)}%</div>
                   </div>
                   
                   <div className="p-4 rounded-lg bg-secondary/20">
@@ -322,7 +322,7 @@ export function WeatherAlertPanel({ variant = 'full', showHistory = true }: Weat
                       <Gauge className="w-4 h-4 text-purple-500" />
                       <span className="text-xs text-muted-foreground">Pressure</span>
                     </div>
-                    <div className="text-2xl font-bold">{weatherData.pressure}</div>
+                    <div className="text-2xl font-bold">{weatherData.pressure.toFixed(1)}</div>
                     <div className={cn(
                       'text-xs',
                       weatherData.pressureChange > 0 ? 'text-success' : 
@@ -337,7 +337,7 @@ export function WeatherAlertPanel({ variant = 'full', showHistory = true }: Weat
                       <Wind className="w-4 h-4 text-cyan-500" />
                       <span className="text-xs text-muted-foreground">Wind</span>
                     </div>
-                    <div className="text-2xl font-bold">{weatherData.windSpeed}</div>
+                    <div className="text-2xl font-bold">{Math.round(weatherData.windSpeed)}</div>
                     <div className="text-xs text-muted-foreground">km/h</div>
                   </div>
                 </div>
