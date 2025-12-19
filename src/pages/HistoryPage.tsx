@@ -3,30 +3,44 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Download, FileText, Search, Filter, Calendar } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Download, FileText, Search, Filter, Calendar, Stethoscope, User, CalendarDays } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { generateMigrainePDF, generatePersonalizedData, generatePersonalizedStats, MigrainEpisode } from "@/utils/pdfExport";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function HistoryPage() {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterPeriod, setFilterPeriod] = useState("all");
   const [migrainHistory, setMigrainHistory] = useState<MigrainEpisode[]>([]);
   const [stats, setStats] = useState<any>(null);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [patientName, setPatientName] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [physicianName, setPhysicianName] = useState("");
+  const [reportPeriod, setReportPeriod] = useState("30");
 
   // Generate personalized data on component mount
   useEffect(() => {
-    const userId = "user123"; // In real app, get from authentication
+    const userId = user?.id || "user123";
     const episodes = generatePersonalizedData(userId);
     const userStats = generatePersonalizedStats(userId);
     setMigrainHistory(episodes);
     setStats(userStats);
-  }, []);
+  }, [user]);
 
   const handleExportPDF = () => {
     try {
-      generateMigrainePDF(migrainHistory, 30);
-      toast.success("PDF report generated successfully!");
+      generateMigrainePDF(migrainHistory, parseInt(reportPeriod), {
+        name: patientName || "Patient Name",
+        dateOfBirth: dateOfBirth || "Not Provided",
+        physicianName: physicianName || undefined,
+      });
+      toast.success("Healthcare Provider Report generated successfully!");
+      setReportDialogOpen(false);
     } catch (error) {
       toast.error("Failed to generate PDF report");
       console.error(error);
@@ -78,7 +92,7 @@ export default function HistoryPage() {
   return (
     <div className="space-y-6 animate-fade-in-up">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Migraine History</h1>
           <p className="text-muted-foreground">Comprehensive record of your migraine episodes</p>
@@ -89,10 +103,107 @@ export default function HistoryPage() {
             <Download className="w-4 h-4 mr-2" />
             Export CSV
           </Button>
-          <Button className="velar-button-primary" size="sm" onClick={handleExportPDF}>
-            <FileText className="w-4 h-4 mr-2" />
-            Generate PDF Report
-          </Button>
+          
+          <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="velar-button-primary" size="sm">
+                <Stethoscope className="w-4 h-4 mr-2" />
+                Healthcare Provider Report
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-primary" />
+                  Generate Healthcare Provider Report
+                </DialogTitle>
+                <DialogDescription>
+                  Create a professional PDF report to share with your healthcare provider. 
+                  This report includes pattern analysis, trigger correlations, and treatment effectiveness data.
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="patientName" className="flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Patient Name
+                  </Label>
+                  <Input
+                    id="patientName"
+                    placeholder="Enter your full name"
+                    value={patientName}
+                    onChange={(e) => setPatientName(e.target.value)}
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="dob" className="flex items-center gap-2">
+                    <CalendarDays className="w-4 h-4" />
+                    Date of Birth
+                  </Label>
+                  <Input
+                    id="dob"
+                    type="date"
+                    value={dateOfBirth}
+                    onChange={(e) => setDateOfBirth(e.target.value)}
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="physician" className="flex items-center gap-2">
+                    <Stethoscope className="w-4 h-4" />
+                    Attending Physician (Optional)
+                  </Label>
+                  <Input
+                    id="physician"
+                    placeholder="Dr. Name"
+                    value={physicianName}
+                    onChange={(e) => setPhysicianName(e.target.value)}
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="period">Report Period</Label>
+                  <Select value={reportPeriod} onValueChange={setReportPeriod}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select period" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="30">Last 30 days</SelectItem>
+                      <SelectItem value="60">Last 60 days</SelectItem>
+                      <SelectItem value="90">Last 90 days</SelectItem>
+                      <SelectItem value="180">Last 6 months</SelectItem>
+                      <SelectItem value="365">Last year</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                  <h4 className="font-medium text-sm text-primary mb-1">Report Contents</h4>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li>• Executive summary with key metrics</li>
+                    <li>• Monthly pattern analysis trends</li>
+                    <li>• Trigger correlation analysis</li>
+                    <li>• Treatment effectiveness data</li>
+                    <li>• Weather & environmental correlations</li>
+                    <li>• Detailed episode log</li>
+                    <li>• Clinical observations & recommendations</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setReportDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleExportPDF} className="velar-button-primary">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Generate Report
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
