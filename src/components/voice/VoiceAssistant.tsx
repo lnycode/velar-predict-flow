@@ -123,9 +123,9 @@ export function VoiceAssistant() {
     }
     
     if (weatherData) {
-      forecastText += ` Current conditions: ${weatherData.temperature} degrees, `;
-      forecastText += `${weatherData.humidity}% humidity, `;
-      forecastText += `and barometric pressure at ${weatherData.pressure} hectopascals.`;
+      forecastText += ` Current conditions: ${weatherData.temperature.toFixed(1)} degrees, `;
+      forecastText += `${weatherData.humidity.toFixed(1)}% humidity, `;
+      forecastText += `and barometric pressure at ${weatherData.pressure.toFixed(1)} hectopascals.`;
     }
 
     try {
