@@ -73,7 +73,7 @@ function calculateMigraineRisk(
   // Low pressure system
   if (weather.pressure < PRESSURE_THRESHOLDS.lowPressure) {
     riskScore += 25 * sensitivityMultiplier;
-    triggers.push(`Low pressure system: ${weather.pressure} hPa`);
+    triggers.push(`Low pressure system: ${weather.pressure.toFixed(1)} hPa`);
   }
 
   // High humidity
