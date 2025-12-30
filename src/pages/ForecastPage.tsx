@@ -117,8 +117,8 @@ export default function ForecastPage() {
     <div className="space-y-6 animate-fade-in-up">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Weather & Forecast</h1>
-        <p className="text-muted-foreground">Real-time weather alerts and AI-powered migraine predictions</p>
+        <h1 className="text-2xl font-bold text-foreground">Risk Estimation & Weather</h1>
+        <p className="text-muted-foreground">Pattern-based early-warning signals and data-driven risk estimation</p>
       </div>
 
       <Tabs defaultValue="alerts" className="space-y-6">
@@ -159,7 +159,7 @@ export default function ForecastPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-semibold text-foreground">Migraine Risk</span>
+                    <span className="text-lg font-semibold text-foreground">Risk Estimation</span>
                     <Badge className={`${getRiskColor(85)} px-3 py-1`}>
                       85% High Risk
                     </Badge>
@@ -275,29 +275,36 @@ export default function ForecastPage() {
             ))}
           </div>
 
-          {/* AI Insights */}
+          {/* Pattern-based Insights */}
           <Card className="velar-card border-border/50">
             <CardHeader>
-              <CardTitle>AI Pattern Analysis</CardTitle>
-              <CardDescription>Insights based on your historical data and weather patterns</CardDescription>
+              <CardTitle>Pattern-based Analysis</CardTitle>
+              <CardDescription>Insights based on your historical data and weather correlations</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
-                  <h4 className="font-semibold text-primary mb-2">Weather Pattern Alert</h4>
+                  <h4 className="font-semibold text-primary mb-2">Early-Warning Signal</h4>
                   <p className="text-sm text-foreground">
-                    A low-pressure system is approaching. Based on your history, you have a 78% chance 
-                    of experiencing a migraine within the next 48 hours.
+                    A low-pressure system is approaching. Based on your historical patterns, there is an elevated 
+                    likelihood of experiencing a migraine within the next 48 hours.
                   </p>
                 </div>
                 
                 <div className="p-4 bg-warning/10 border border-warning/20 rounded-lg">
-                  <h4 className="font-semibold text-warning mb-2">Personalized Insight</h4>
+                  <h4 className="font-semibold text-warning mb-2">Pattern-based Insight</h4>
                   <p className="text-sm text-foreground">
-                    Your migraines typically occur 6-12 hours before barometric pressure drops below 1010 hPa. 
+                    Your episodes typically occur 6-12 hours before barometric pressure drops below 1010 hPa. 
                     Consider taking preventive measures tonight.
                   </p>
                 </div>
+              </div>
+              
+              <div className="p-3 bg-secondary/20 rounded-lg border border-secondary/30">
+                <p className="text-xs text-muted-foreground italic">
+                  <strong>Note:</strong> This risk estimation is based on historical patterns, weather data, and user-reported information. 
+                  It is intended to support awareness and preparation, not to replace medical advice.
+                </p>
               </div>
             </CardContent>
           </Card>

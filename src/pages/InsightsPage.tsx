@@ -10,12 +10,12 @@ export default function InsightsPage() {
         <div className="absolute inset-0 bg-gradient-primary/10 blur-3xl rounded-full" />
         <div className="relative">
           <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
-            Neural Intelligence Center
+            Pattern-based Insights
           </h1>
-          <p className="text-cyan-400 text-lg">Advanced AI-powered migraine analysis and predictive insights</p>
+          <p className="text-cyan-400 text-lg">Data-driven migraine risk estimation and decision support</p>
           <div className="flex items-center gap-2 mt-4">
             <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse-glow" />
-            <span className="text-sm text-green-400 font-medium">AI Models Active • Real-time Analysis</span>
+            <span className="text-sm text-green-400 font-medium">Pattern Analysis Active • Real-time Monitoring</span>
           </div>
         </div>
       </div>
@@ -28,9 +28,9 @@ export default function InsightsPage() {
               <div className="p-2 bg-gradient-primary rounded-lg group-hover:animate-pulse-glow">
                 <Brain className="w-6 h-6 text-white" />
               </div>
-              <span className="bg-gradient-primary bg-clip-text text-transparent">Neural Pattern Recognition</span>
+              <span className="bg-gradient-primary bg-clip-text text-transparent">Pattern Recognition</span>
             </CardTitle>
-            <CardDescription className="text-cyan-400">Advanced AI analysis of your migraine patterns and triggers</CardDescription>
+            <CardDescription className="text-cyan-400">Data-driven analysis of your migraine patterns and triggers</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
@@ -140,9 +140,9 @@ export default function InsightsPage() {
             <div className="p-3 bg-gradient-primary rounded-xl animate-pulse-glow">
               <Target className="w-7 h-7 text-white" />
             </div>
-            <span className="bg-gradient-primary bg-clip-text text-transparent">Predictive AI Performance Matrix</span>
+            <span className="bg-gradient-primary bg-clip-text text-transparent">Estimation Performance Metrics</span>
           </CardTitle>
-          <CardDescription className="text-cyan-400 text-lg">Real-time accuracy metrics from our advanced neural networks</CardDescription>
+          <CardDescription className="text-cyan-400 text-lg">Accuracy metrics based on historical pattern matching</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -153,21 +153,21 @@ export default function InsightsPage() {
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-warning mb-2">87%</div>
-              <div className="text-sm text-muted-foreground">Weather Predictions</div>
+              <div className="text-sm text-muted-foreground">Weather Correlation</div>
               <div className="text-xs text-muted-foreground mt-1">6-hour window</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-success mb-2">94%</div>
-              <div className="text-sm text-muted-foreground">Pattern Recognition</div>
+              <div className="text-sm text-muted-foreground">Pattern Matching</div>
               <div className="text-xs text-muted-foreground mt-1">Personal triggers</div>
             </div>
           </div>
 
           <div className="mt-6 p-4 bg-secondary/20 rounded-lg">
-            <h4 className="font-semibold text-foreground mb-2">Model Improvements</h4>
+            <h4 className="font-semibold text-foreground mb-2">Estimation Improvements</h4>
             <p className="text-sm text-muted-foreground">
-              Your prediction accuracy has improved by 15% this month as our AI learns more about your 
-              unique patterns. The model becomes more accurate with each logged episode.
+              Your estimation accuracy has improved by 15% this month as the pattern analysis refines 
+              based on your unique data. Accuracy improves with each logged episode.
             </p>
           </div>
         </CardContent>
@@ -176,14 +176,14 @@ export default function InsightsPage() {
       {/* Trend Analysis */}
       <Card className="velar-card border-green-400/20 shadow-glow hover:shadow-green-400/20 transition-all duration-300 group">
         <CardHeader className="pb-6">
-          <CardTitle className="flex items-center gap-3 text-xl">
-            <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg group-hover:animate-pulse-glow">
-              <TrendingUp className="w-6 h-6 text-white" />
-            </div>
-            <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">Neural Progress Analytics</span>
-          </CardTitle>
-          <CardDescription className="text-cyan-400">Advanced tracking of your migraine management evolution</CardDescription>
-        </CardHeader>
+            <CardTitle className="flex items-center gap-3 text-xl">
+              <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg group-hover:animate-pulse-glow">
+                <TrendingUp className="w-6 h-6 text-white" />
+              </div>
+              <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">Progress Analytics</span>
+            </CardTitle>
+            <CardDescription className="text-cyan-400">Tracking your migraine management progress over time</CardDescription>
+          </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">

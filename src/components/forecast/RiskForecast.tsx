@@ -202,10 +202,10 @@ export const RiskForecast: React.FC = () => {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="w-5 h-5 text-primary" />
-              7-Tage Migräne-Risiko Vorhersage
+              7-Tage Risikoschätzung
             </CardTitle>
             <CardDescription>
-              KI-basierte Prognosen basierend auf Wetter und persönlichen Triggern
+              Datenbasierte Schätzung basierend auf Wettermustern und persönlichen Triggern
             </CardDescription>
           </div>
           
@@ -339,8 +339,8 @@ export const RiskForecast: React.FC = () => {
         
         <div className="mt-4 p-3 bg-secondary/20 rounded-lg">
           <p className="text-xs text-muted-foreground">
-            <strong>Hinweis:</strong> Diese Vorhersagen basieren auf Wettermodellen und Ihren persönlichen 
-            Triggern. Sie ersetzen keine medizinische Beratung und dienen nur als Orientierungshilfe.
+            <strong>Hinweis:</strong> Diese Risikoschätzung basiert auf historischen Mustern, Wetterdaten und Ihren Angaben. 
+            Sie dient als Entscheidungshilfe zur Vorbereitung und ersetzt keine ärztliche Beratung.
           </p>
         </div>
       </CardContent>
