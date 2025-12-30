@@ -26,10 +26,10 @@ import {
 
 const navigationItems = [
   { 
-    title: "Mission Control", 
+    title: "Dashboard", 
     url: "/", 
     icon: Orbit,
-    description: "Neural Observatory"
+    description: "Overview & Status"
   },
   { 
     title: "Calendar", 
@@ -41,13 +41,13 @@ const navigationItems = [
     title: "History", 
     url: "/history", 
     icon: History,
-    description: "Neural Archives"
+    description: "Data Archives"
   },
   { 
-    title: "Forecast", 
+    title: "Risk Estimation", 
     url: "/forecast", 
     icon: Satellite,
-    description: "Prediction Matrix"
+    description: "Pattern-based Forecasting"
   },
   { 
     title: "Analytics", 
@@ -56,16 +56,16 @@ const navigationItems = [
     description: "Pattern Recognition"
   },
   { 
-    title: "AI Insights", 
+    title: "Insights", 
     url: "/insights", 
     icon: Zap,
-    description: "Neural Intelligence"
+    description: "Decision Support"
   },
   { 
     title: "Settings", 
     url: "/settings", 
     icon: Settings2,
-    description: "System Config"
+    description: "Configuration"
   }
 ];
 
@@ -104,7 +104,7 @@ export function AppSidebar() {
           {sidebarOpen && (
             <div className="animate-fade-in-up">
               <h1 className="text-xl font-bold text-white">Velar</h1>
-              <p className="text-xs text-cyan-400">Neural Interface</p>
+              <p className="text-xs text-cyan-400">Decision Support Tool</p>
             </div>
           )}
         </div>
@@ -151,8 +151,8 @@ export function AppSidebar() {
         {sidebarOpen && (
           <div className="mt-auto pt-6 animate-fade-in-up">
             <div className="text-xs text-gray-400 text-center">
-              <p className="text-cyan-400 font-medium">Velar Neural AI v3.0</p>
-              <p className="mt-1">Advanced Predictive Intelligence</p>
+              <p className="text-cyan-400 font-medium">Velar v3.0</p>
+              <p className="mt-1">Data-driven Decision Support</p>
             </div>
           </div>
         )}

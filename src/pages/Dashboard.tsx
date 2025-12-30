@@ -84,7 +84,7 @@ export default function Dashboard() {
       if (prediction) {
         recentActivity.unshift({
           time: `${Math.round((new Date().getTime() - new Date(prediction.created_at).getTime()) / (1000 * 60 * 60))}h ago`,
-          event: 'KI-Vorhersage erstellt',
+          event: 'Risikoschätzung erstellt',
           severity: prediction.risk_level > 7 ? 'Hohes Risiko' : 
                    prediction.risk_level > 4 ? 'Mittleres Risiko' : 'Niedriges Risiko',
           type: 'prediction'
@@ -223,7 +223,7 @@ export default function Dashboard() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Brain className="w-4 h-4 text-primary" />
-              KI-Status
+              Analyse-Status
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -231,7 +231,7 @@ export default function Dashboard() {
               {dashboardData.lastPrediction ? 'Aktiv' : 'Bereit'}
             </div>
             <p className="text-xs text-muted-foreground">
-              {dashboardData.lastPrediction ? 'Vorhersage verfügbar' : 'Warten auf Daten'}
+              {dashboardData.lastPrediction ? 'Schätzung verfügbar' : 'Warten auf Daten'}
             </p>
           </CardContent>
         </Card>
@@ -299,7 +299,7 @@ export default function Dashboard() {
             Letzte Aktivitäten
           </CardTitle>
           <CardDescription>
-            Übersicht Ihrer aktuellen Migräne-Dokumentation und KI-Vorhersagen
+            Übersicht Ihrer aktuellen Migräne-Dokumentation und Risikoschätzungen
           </CardDescription>
         </CardHeader>
         
