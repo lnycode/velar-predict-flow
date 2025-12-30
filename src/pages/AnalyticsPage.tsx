@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { DisclaimerFooter } from "@/components/layout/DisclaimerFooter";
 import { TrendingUp, Clock, MapPin, Zap } from "lucide-react";
 
 export default function AnalyticsPage() {
@@ -251,6 +252,8 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <DisclaimerFooter />
     </div>
   );
 }

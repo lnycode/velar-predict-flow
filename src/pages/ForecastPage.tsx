@@ -4,6 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WeatherAlertPanel } from "@/components/alerts/WeatherAlertPanel";
 import { VoiceAssistant } from "@/components/voice/VoiceAssistant";
+import { DisclaimerFooter } from "@/components/layout/DisclaimerFooter";
 import { CloudRain, Sun, Cloud, CloudSnow, Wind, Thermometer, Droplets, Gauge, Bell, Calendar, Mic } from "lucide-react";
 
 export default function ForecastPage() {
@@ -310,6 +311,8 @@ export default function ForecastPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <DisclaimerFooter />
     </div>
   );
 }
