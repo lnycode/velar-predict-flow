@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { DisclaimerFooter } from "@/components/layout/DisclaimerFooter";
 import { Brain, Lightbulb, Target, TrendingUp, Calendar, Clock, MapPin } from "lucide-react";
 
 export default function InsightsPage() {
@@ -224,6 +225,8 @@ export default function InsightsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <DisclaimerFooter />
     </div>
   );
 }

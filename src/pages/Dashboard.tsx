@@ -6,6 +6,7 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { Statistics } from "@/components/dashboard/Statistics";
 import { RiskForecast } from "@/components/forecast/RiskForecast";
 import { WeatherAlertPanel } from "@/components/alerts/WeatherAlertPanel";
+import { DisclaimerFooter } from "@/components/layout/DisclaimerFooter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -339,6 +340,8 @@ export default function Dashboard() {
           )}
         </CardContent>
       </Card>
+
+      <DisclaimerFooter />
     </div>
   );
 }
