@@ -9,10 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import jsPDF from "jspdf";
 
 export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isAddingEntry, setIsAddingEntry] = useState(false);
+  const { toast } = useToast();
 
   // Mock migraine data
   const migraineDays = [
@@ -29,6 +32,52 @@ export default function CalendarPage() {
     { time: '09:15', severity: 'Mild', triggers: ['Sleep deprivation'], duration: '2 hours' },
   ];
 
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    const currentMonth = selectedDate ? selectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Calendar';
+    
+    // Header
+    doc.setFillColor(79, 70, 229);
+    doc.rect(0, 0, 210, 30, 'F');
+    doc.setFontSize(18);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Velar - Migraine Calendar', 15, 18);
+    
+    // Date
+    doc.setFontSize(10);
+    doc.text(`Export: ${new Date().toLocaleDateString()}`, 195, 18, { align: 'right' });
+    
+    // Month title
+    doc.setFontSize(14);
+    doc.setTextColor(17, 24, 39);
+    doc.text(currentMonth, 15, 45);
+    
+    // Episode summary
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Total migraine days this period: ${migraineDays.length}`, 15, 55);
+    
+    // List dates
+    doc.setFontSize(9);
+    doc.text('Recorded migraine dates:', 15, 70);
+    migraineDays.forEach((date, i) => {
+      doc.text(`• ${date.toLocaleDateString()}`, 20, 80 + (i * 6));
+    });
+    
+    // Footer disclaimer
+    doc.setFontSize(7);
+    doc.setTextColor(107, 114, 128);
+    doc.text('Decision Support Tool - Not intended to replace medical advice.', 15, 280);
+    
+    doc.save(`velar-calendar-${currentMonth.toLowerCase().replace(' ', '-')}.pdf`);
+    
+    toast({
+      title: "PDF Exported",
+      description: "Calendar data has been exported successfully.",
+    });
+  };
+
   return (
     <div className="space-y-6 animate-fade-in-up">
       {/* Header */}
@@ -43,7 +92,7 @@ export default function CalendarPage() {
             <Filter className="w-4 h-4 mr-2" />
             Filter
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleExportPDF}>
             <Download className="w-4 h-4 mr-2" />
             Export PDF
           </Button>
