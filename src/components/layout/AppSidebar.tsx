@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { 
   Orbit, 
@@ -7,11 +6,9 @@ import {
   Calendar,
   TrendingUp,
   Zap,
-  Cloud,
   Satellite,
   Globe
 } from "lucide-react";
-import velarLogo from "@/assets/velar-logo.png";
 import {
   Sidebar,
   SidebarContent,
@@ -92,15 +89,10 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className="border-r border-primary/20 bg-gradient-to-b from-black via-black/95 to-black backdrop-blur-xl shadow-2xl">
-      <SidebarContent className="p-4 bg-transparent">
-        {/* Velar Logo */}
-        <div className="mb-8 flex items-center gap-3">
-          <div className="relative">
-            <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center animate-pulse-glow p-1">
-              <img src={velarLogo} alt="Velar" className="w-full h-full object-contain" />
-            </div>
-          </div>
+    <Sidebar className="border-r border-primary/20 bg-black shadow-2xl">
+      <SidebarContent className="p-4 bg-black">
+        {/* Header */}
+        <div className="mb-6">
           {sidebarOpen && (
             <div className="animate-fade-in-up">
               <h1 className="text-xl font-bold text-white">Velar</h1>
