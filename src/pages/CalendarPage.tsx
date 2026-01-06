@@ -3,15 +3,18 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Download, Filter, Loader2 } from "lucide-react";
+import { Plus, Download, Filter, Loader2, CalendarIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { format, subDays, startOfDay, endOfDay } from "date-fns";
+import { cn } from "@/lib/utils";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -45,6 +48,10 @@ export default function CalendarPage() {
   const [migraineEntries, setMigraineEntries] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [exportDateRange, setExportDateRange] = useState<string>("30");
+  const [customStartDate, setCustomStartDate] = useState<Date | undefined>();
+  const [customEndDate, setCustomEndDate] = useState<Date | undefined>();
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -117,25 +124,65 @@ export default function CalendarPage() {
       })
     : [];
 
+  // Get date range for export
+  const getExportDateRange = (): { start: Date; end: Date; label: string } => {
+    const end = endOfDay(new Date());
+    
+    if (exportDateRange === "custom" && customStartDate && customEndDate) {
+      return {
+        start: startOfDay(customStartDate),
+        end: endOfDay(customEndDate),
+        label: `${format(customStartDate, 'MMM d, yyyy')} - ${format(customEndDate, 'MMM d, yyyy')}`
+      };
+    }
+    
+    const days = parseInt(exportDateRange);
+    const rangeLabels: Record<string, string> = {
+      "7": "Last 7 Days",
+      "30": "Last 30 Days",
+      "60": "Last 60 Days",
+      "90": "Last 3 Months",
+      "180": "Last 6 Months",
+      "365": "Last Year",
+    };
+    
+    return {
+      start: startOfDay(subDays(new Date(), days)),
+      end: end,
+      label: rangeLabels[exportDateRange] || `Last ${days} Days`
+    };
+  };
+
+  // Filter episodes by date range
+  const getFilteredEpisodes = (): EpisodeData[] => {
+    const { start, end } = getExportDateRange();
+    
+    return episodeData.filter(ep => {
+      const episodeDate = new Date(ep.date);
+      return episodeDate >= start && episodeDate <= end;
+    });
+  };
+
   const handleExportPDF = async () => {
-    if (episodeData.length === 0) {
+    const filteredData = getFilteredEpisodes();
+    const { label: periodLabel } = getExportDateRange();
+    
+    if (filteredData.length === 0) {
       toast({
         title: "No Data",
-        description: "No migraine entries to export. Log some episodes first.",
+        description: `No migraine entries found for ${periodLabel}. Try a different date range.`,
         variant: "destructive",
       });
       return;
     }
 
     setIsExporting(true);
+    setIsExportDialogOpen(false);
     
     try {
       const doc = new jsPDF();
-    const currentMonth = selectedDate 
-      ? selectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) 
-      : new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     const reportDate = new Date().toLocaleDateString('en-US', { 
-      year: 'numeric', 
+      year: 'numeric',
       month: 'long', 
       day: 'numeric' 
     });
@@ -173,7 +220,7 @@ export default function CalendarPage() {
     doc.setFont('helvetica', 'bold');
     doc.text('Period:', 135, 19);
     doc.setFont('helvetica', 'normal');
-    doc.text(currentMonth, 155, 19);
+    doc.text(periodLabel, 155, 19);
     
     doc.setFont('helvetica', 'bold');
     doc.text('Doc ID:', 135, 26);
@@ -185,11 +232,11 @@ export default function CalendarPage() {
     const cardWidth = 43;
     const cardHeight = 25;
     
-    // Calculate stats
-    const totalEpisodes = episodeData.length;
-    const avgIntensity = episodeData.reduce((sum, ep) => sum + ep.intensity, 0) / totalEpisodes;
-    const severeCount = episodeData.filter(ep => ep.severity === 'Severe').length;
-    const avgDuration = episodeData.reduce((sum, ep) => parseFloat(ep.duration) || 0, 0) / totalEpisodes;
+    // Calculate stats from filtered data
+    const totalEpisodes = filteredData.length;
+    const avgIntensity = filteredData.reduce((sum, ep) => sum + ep.intensity, 0) / totalEpisodes;
+    const severeCount = filteredData.filter(ep => ep.severity === 'Severe').length;
+    const avgDuration = filteredData.reduce((sum, ep) => parseFloat(ep.duration) || 0, 0) / totalEpisodes;
     
     const cards = [
       { label: 'Total Episodes', value: totalEpisodes.toString(), color: PDF_COLORS.accent },
@@ -234,7 +281,7 @@ export default function CalendarPage() {
     doc.setLineWidth(0.8);
     doc.line(15, 84, 55, 84);
 
-    const tableData = episodeData.map((ep, i) => [
+    const tableData = filteredData.map((ep, i) => [
       (i + 1).toString(),
       ep.date,
       ep.time,
@@ -288,9 +335,9 @@ export default function CalendarPage() {
 
     // Simple intensity bar chart
     const intensityGroups = {
-      'Mild (1-3)': episodeData.filter(ep => ep.intensity <= 3).length,
-      'Moderate (4-6)': episodeData.filter(ep => ep.intensity >= 4 && ep.intensity <= 6).length,
-      'Severe (7-10)': episodeData.filter(ep => ep.intensity >= 7).length,
+      'Mild (1-3)': filteredData.filter(ep => ep.intensity <= 3).length,
+      'Moderate (4-6)': filteredData.filter(ep => ep.intensity >= 4 && ep.intensity <= 6).length,
+      'Severe (7-10)': filteredData.filter(ep => ep.intensity >= 7).length,
     };
 
     const barY = tableEndY + 8;
@@ -339,7 +386,7 @@ export default function CalendarPage() {
 
     // Count triggers
     const triggerCounts: Record<string, number> = {};
-    episodeData.forEach(ep => {
+    filteredData.forEach(ep => {
       ep.triggers.forEach(trigger => {
         triggerCounts[trigger] = (triggerCounts[trigger] || 0) + 1;
       });
@@ -389,11 +436,11 @@ export default function CalendarPage() {
     doc.text(`Generated: ${new Date().toISOString()}`, 195, pageHeight - 12, { align: 'right' });
     doc.text('Page 1 of 1', 195, pageHeight - 8, { align: 'right' });
     
-      doc.save(`velar-calendar-${currentMonth.toLowerCase().replace(' ', '-')}.pdf`);
+      doc.save(`velar-calendar-${periodLabel.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`);
       
       toast({
         title: "Report Exported",
-        description: `Professional calendar report with ${episodeData.length} episodes has been generated.`,
+        description: `Calendar report with ${filteredData.length} episodes for ${periodLabel} has been generated.`,
       });
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -421,19 +468,145 @@ export default function CalendarPage() {
             <Filter className="w-4 h-4 mr-2" />
             Filter
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleExportPDF}
-            disabled={isExporting || isLoading}
-          >
-            {isExporting ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Download className="w-4 h-4 mr-2" />
-            )}
-            Export PDF
-          </Button>
+          <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
+            <DialogTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                disabled={isExporting || isLoading}
+              >
+                {isExporting ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4 mr-2" />
+                )}
+                Export PDF
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="velar-card border-border/50">
+              <DialogHeader>
+                <DialogTitle>Export Calendar Report</DialogTitle>
+                <DialogDescription>Select the date range for your migraine report</DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                <div>
+                  <Label>Date Range</Label>
+                  <Select value={exportDateRange} onValueChange={setExportDateRange}>
+                    <SelectTrigger className="bg-background border-border/50">
+                      <SelectValue placeholder="Select date range" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="7">Last 7 Days</SelectItem>
+                      <SelectItem value="30">Last 30 Days</SelectItem>
+                      <SelectItem value="60">Last 60 Days</SelectItem>
+                      <SelectItem value="90">Last 3 Months</SelectItem>
+                      <SelectItem value="180">Last 6 Months</SelectItem>
+                      <SelectItem value="365">Last Year</SelectItem>
+                      <SelectItem value="custom">Custom Range</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {exportDateRange === "custom" && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Start Date</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !customStartDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {customStartDate ? format(customStartDate, "PPP") : <span>Pick start date</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={customStartDate}
+                            onSelect={setCustomStartDate}
+                            disabled={(date) => date > new Date()}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>End Date</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !customEndDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {customEndDate ? format(customEndDate, "PPP") : <span>Pick end date</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={customEndDate}
+                            onSelect={setCustomEndDate}
+                            disabled={(date) => date > new Date() || (customStartDate && date < customStartDate)}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                )}
+
+                <div className="p-3 bg-secondary/30 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    {episodeData.length > 0 
+                      ? `${getFilteredEpisodes().length} episodes found in selected range`
+                      : "No episodes recorded yet"}
+                  </p>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => setIsExportDialogOpen(false)} 
+                    variant="outline" 
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleExportPDF} 
+                    className="flex-1 velar-button-primary"
+                    disabled={
+                      isExporting || 
+                      (exportDateRange === "custom" && (!customStartDate || !customEndDate))
+                    }
+                  >
+                    {isExporting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Exporting...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-4 h-4 mr-2" />
+                        Export Report
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Dialog open={isAddingEntry} onOpenChange={setIsAddingEntry}>
             <DialogTrigger asChild>
               <Button className="velar-button-primary" size="sm">
