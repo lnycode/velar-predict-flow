@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Download, Filter } from "lucide-react";
+import { Plus, Download, Filter, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -40,35 +42,95 @@ interface EpisodeData {
 export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isAddingEntry, setIsAddingEntry] = useState(false);
+  const [migraineEntries, setMigraineEntries] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  // Mock migraine data with intensity
-  const migraineDays = [
-    new Date(2024, 0, 15),
-    new Date(2024, 0, 18),
-    new Date(2024, 0, 22),
-    new Date(2024, 0, 28),
-    new Date(2024, 1, 3),
-    new Date(2024, 1, 8),
-  ];
+  // Fetch real migraine entries from Supabase
+  useEffect(() => {
+    const fetchMigraineEntries = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
 
-  // Enhanced episode data
-  const episodeData: EpisodeData[] = [
-    { date: '2024-01-15', time: '14:30', severity: 'Moderate', intensity: 6, duration: '4 hours', triggers: ['Weather change', 'Stress'], location: 'Frontal' },
-    { date: '2024-01-18', time: '09:15', severity: 'Mild', intensity: 3, duration: '2 hours', triggers: ['Sleep deprivation'], location: 'Right temple' },
-    { date: '2024-01-22', time: '16:45', severity: 'Severe', intensity: 8, duration: '6 hours', triggers: ['Bright lights', 'Noise'], location: 'Bilateral' },
-    { date: '2024-01-28', time: '11:00', severity: 'Moderate', intensity: 5, duration: '3 hours', triggers: ['Skipped meal'], location: 'Left temple' },
-    { date: '2024-02-03', time: '08:30', severity: 'Mild', intensity: 4, duration: '2 hours', triggers: ['Caffeine withdrawal'], location: 'Frontal' },
-    { date: '2024-02-08', time: '19:00', severity: 'Severe', intensity: 9, duration: '8 hours', triggers: ['Barometric pressure', 'Stress'], location: 'Bilateral' },
-  ];
+      try {
+        const { data, error } = await supabase
+          .from('migraine_entries')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
 
-  const todaysEntries = [
-    { time: '14:30', severity: 'Moderate', triggers: ['Weather change', 'Stress'], duration: '4 hours' },
-    { time: '09:15', severity: 'Mild', triggers: ['Sleep deprivation'], duration: '2 hours' },
-  ];
+        if (error) throw error;
+        setMigraineEntries(data || []);
+      } catch (error) {
+        console.error('Error fetching migraine entries:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load migraine entries",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const handleExportPDF = () => {
-    const doc = new jsPDF();
+    fetchMigraineEntries();
+  }, [user, toast]);
+
+  // Convert entries to calendar dates
+  const migraineDays = migraineEntries
+    .filter(entry => entry.created_at)
+    .map(entry => new Date(entry.created_at));
+
+  // Convert entries to EpisodeData format for PDF
+  const episodeData: EpisodeData[] = migraineEntries.map(entry => {
+    const date = entry.created_at ? new Date(entry.created_at) : new Date();
+    const intensity = entry.intensity || entry.severity || 5;
+    const severityLabel = intensity <= 3 ? 'Mild' : intensity <= 6 ? 'Moderate' : 'Severe';
+    
+    // Parse triggers from note field or use empty array
+    const triggers = entry.note 
+      ? entry.note.split(',').map((t: string) => t.trim()).filter(Boolean).slice(0, 3)
+      : [];
+
+    return {
+      date: date.toISOString().split('T')[0],
+      time: date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      severity: severityLabel,
+      intensity: intensity,
+      duration: entry.duration ? `${entry.duration} hours` : 'N/A',
+      triggers: triggers.length > 0 ? triggers : ['Not specified'],
+      location: entry.location || 'Not specified',
+      notes: entry.note || ''
+    };
+  });
+
+  // Get entries for selected date
+  const selectedDateEntries = selectedDate 
+    ? migraineEntries.filter(entry => {
+        if (!entry.created_at) return false;
+        const entryDate = new Date(entry.created_at);
+        return entryDate.toDateString() === selectedDate.toDateString();
+      })
+    : [];
+
+  const handleExportPDF = async () => {
+    if (episodeData.length === 0) {
+      toast({
+        title: "No Data",
+        description: "No migraine entries to export. Log some episodes first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsExporting(true);
+    
+    try {
+      const doc = new jsPDF();
     const currentMonth = selectedDate 
       ? selectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) 
       : new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -327,12 +389,22 @@ export default function CalendarPage() {
     doc.text(`Generated: ${new Date().toISOString()}`, 195, pageHeight - 12, { align: 'right' });
     doc.text('Page 1 of 1', 195, pageHeight - 8, { align: 'right' });
     
-    doc.save(`velar-calendar-${currentMonth.toLowerCase().replace(' ', '-')}.pdf`);
-    
-    toast({
-      title: "Report Exported",
-      description: "Professional calendar report has been generated.",
-    });
+      doc.save(`velar-calendar-${currentMonth.toLowerCase().replace(' ', '-')}.pdf`);
+      
+      toast({
+        title: "Report Exported",
+        description: `Professional calendar report with ${episodeData.length} episodes has been generated.`,
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "Export Failed",
+        description: "Failed to generate PDF report. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -349,8 +421,17 @@ export default function CalendarPage() {
             <Filter className="w-4 h-4 mr-2" />
             Filter
           </Button>
-          <Button variant="outline" size="sm" onClick={handleExportPDF}>
-            <Download className="w-4 h-4 mr-2" />
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleExportPDF}
+            disabled={isExporting || isLoading}
+          >
+            {isExporting ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4 mr-2" />
+            )}
             Export PDF
           </Button>
           <Dialog open={isAddingEntry} onOpenChange={setIsAddingEntry}>
@@ -467,28 +548,46 @@ export default function CalendarPage() {
               <CardDescription>Episode details for this day</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {todaysEntries.length > 0 ? (
-                todaysEntries.map((entry, index) => (
-                  <div key={index} className="p-3 bg-secondary/30 rounded-lg space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-foreground">{entry.time}</span>
-                      <Badge variant={entry.severity === 'Severe' ? 'destructive' : 'secondary'}>
-                        {entry.severity}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">Duration: {entry.duration}</p>
-                    <div className="flex flex-wrap gap-1">
-                      {entry.triggers.map((trigger, i) => (
-                        <Badge key={i} variant="outline" className="text-xs">
-                          {trigger}
+              {selectedDateEntries.length > 0 ? (
+                selectedDateEntries.map((entry, index) => {
+                  const intensity = entry.intensity || entry.severity || 5;
+                  const severityLabel = intensity <= 3 ? 'Mild' : intensity <= 6 ? 'Moderate' : 'Severe';
+                  const time = entry.created_at 
+                    ? new Date(entry.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                    : 'N/A';
+                  const triggers = entry.note 
+                    ? entry.note.split(',').map((t: string) => t.trim()).filter(Boolean).slice(0, 3)
+                    : [];
+                  
+                  return (
+                    <div key={entry.id || index} className="p-3 bg-secondary/30 rounded-lg space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-foreground">{time}</span>
+                        <Badge variant={severityLabel === 'Severe' ? 'destructive' : 'secondary'}>
+                          {severityLabel} ({intensity}/10)
                         </Badge>
-                      ))}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Duration: {entry.duration ? `${entry.duration} hours` : 'Not specified'}
+                      </p>
+                      {entry.location && (
+                        <p className="text-sm text-muted-foreground">Location: {entry.location}</p>
+                      )}
+                      {triggers.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {triggers.map((trigger: string, i: number) => (
+                            <Badge key={i} variant="outline" className="text-xs">
+                              {trigger}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  No episodes recorded for this day
+                  {isLoading ? 'Loading entries...' : 'No episodes recorded for this day'}
                 </p>
               )}
             </CardContent>
