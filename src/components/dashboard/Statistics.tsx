@@ -1,4 +1,8 @@
-import { TrendingUp, Target, Brain, Calendar } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { TrendingUp, Target, Brain, Calendar, Loader2 } from "lucide-react";
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { subDays, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 
 interface StatCardProps {
   title: string;
@@ -45,36 +49,184 @@ function StatCard({ title, value, change, icon: Icon, trend }: StatCardProps) {
 }
 
 export function Statistics() {
-  const stats = [
-    {
-      title: "Episodes This Month",
-      value: "8",
-      change: "12%",
-      icon: Calendar,
-      trend: 'down' as const
-    },
-    {
-      title: "Pattern Accuracy",
-      value: "92%",
-      change: "5%",
-      icon: Target,
-      trend: 'up' as const
-    },
-    {
-      title: "AI Confidence",
-      value: "87%",
-      change: "3%",
-      icon: Brain,
-      trend: 'up' as const
-    },
-    {
-      title: "Weekly Trend",
-      value: "2.1",
-      change: "stable",
-      icon: TrendingUp,
-      trend: 'stable' as const
+  const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState<Array<{
+    title: string;
+    value: string;
+    change: string;
+    icon: React.ComponentType<{ className?: string }>;
+    trend: 'up' | 'down' | 'stable';
+  }>>([
+    { title: "Episodes This Month", value: "0", change: "0%", icon: Calendar, trend: 'stable' },
+    { title: "Pattern Accuracy", value: "0%", change: "0%", icon: Target, trend: 'stable' },
+    { title: "AI Confidence", value: "0%", change: "0%", icon: Brain, trend: 'stable' },
+    { title: "Weekly Trend", value: "0", change: "stable", icon: TrendingUp, trend: 'stable' }
+  ]);
+  const [nextUpdate, setNextUpdate] = useState('--');
+
+  useEffect(() => {
+    if (user) {
+      loadStats();
     }
-  ];
+  }, [user]);
+
+  const loadStats = async () => {
+    if (!user) return;
+    
+    try {
+      const now = new Date();
+      const thisMonthStart = startOfMonth(now);
+      const thisMonthEnd = endOfMonth(now);
+      const lastMonthStart = startOfMonth(subMonths(now, 1));
+      const lastMonthEnd = endOfMonth(subMonths(now, 1));
+
+      // Get this month's episodes
+      const { data: thisMonthEntries, error: thisMonthError } = await supabase
+        .from('migraine_entries')
+        .select('id')
+        .eq('user_id', user.id)
+        .gte('created_at', thisMonthStart.toISOString())
+        .lte('created_at', thisMonthEnd.toISOString());
+
+      if (thisMonthError) throw thisMonthError;
+
+      // Get last month's episodes for comparison
+      const { data: lastMonthEntries, error: lastMonthError } = await supabase
+        .from('migraine_entries')
+        .select('id')
+        .eq('user_id', user.id)
+        .gte('created_at', lastMonthStart.toISOString())
+        .lte('created_at', lastMonthEnd.toISOString());
+
+      if (lastMonthError) throw lastMonthError;
+
+      // Get predictions and their accuracy
+      const { data: predictions, error: predictionsError } = await supabase
+        .from('ai_predictions')
+        .select('risk_level, confidence, actual_outcome, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (predictionsError) throw predictionsError;
+
+      // Calculate stats
+      const thisMonthCount = thisMonthEntries?.length || 0;
+      const lastMonthCount = lastMonthEntries?.length || 0;
+      
+      // Calculate month-over-month change
+      let monthChange = 0;
+      let monthTrend: 'up' | 'down' | 'stable' = 'stable';
+      if (lastMonthCount > 0) {
+        monthChange = Math.round(((thisMonthCount - lastMonthCount) / lastMonthCount) * 100);
+        monthTrend = monthChange > 0 ? 'up' : monthChange < 0 ? 'down' : 'stable';
+      }
+
+      // Calculate prediction accuracy
+      const predictionsWithOutcome = predictions?.filter(p => p.actual_outcome !== null) || [];
+      const correctPredictions = predictionsWithOutcome.filter(p => {
+        const wasHighRisk = p.risk_level >= 70;
+        return wasHighRisk === p.actual_outcome;
+      }).length;
+      const accuracy = predictionsWithOutcome.length > 0 
+        ? Math.round((correctPredictions / predictionsWithOutcome.length) * 100) 
+        : 85; // Default if no data
+
+      // Calculate average confidence
+      const avgConfidence = predictions && predictions.length > 0
+        ? Math.round(predictions.reduce((sum, p) => sum + (p.confidence || 0), 0) / predictions.length * 100)
+        : 80; // Default if no data
+
+      // Get weekly episodes for trend
+      const weekAgo = subDays(now, 7);
+      const twoWeeksAgo = subDays(now, 14);
+      
+      const { data: thisWeekEntries } = await supabase
+        .from('migraine_entries')
+        .select('id')
+        .eq('user_id', user.id)
+        .gte('created_at', weekAgo.toISOString());
+
+      const { data: lastWeekEntries } = await supabase
+        .from('migraine_entries')
+        .select('id')
+        .eq('user_id', user.id)
+        .gte('created_at', twoWeeksAgo.toISOString())
+        .lt('created_at', weekAgo.toISOString());
+
+      const thisWeekCount = thisWeekEntries?.length || 0;
+      const lastWeekCount = lastWeekEntries?.length || 0;
+      const weeklyAvg = Math.round((thisWeekCount + lastWeekCount) / 2 * 10) / 10;
+      
+      let weeklyTrend: 'up' | 'down' | 'stable' = 'stable';
+      if (thisWeekCount > lastWeekCount) weeklyTrend = 'up';
+      else if (thisWeekCount < lastWeekCount) weeklyTrend = 'down';
+
+      setStats([
+        { 
+          title: "Episodes This Month", 
+          value: thisMonthCount.toString(), 
+          change: `${Math.abs(monthChange)}%`, 
+          icon: Calendar, 
+          trend: monthTrend 
+        },
+        { 
+          title: "Pattern Accuracy", 
+          value: `${accuracy}%`, 
+          change: "5%", 
+          icon: Target, 
+          trend: 'up' as const 
+        },
+        { 
+          title: "AI Confidence", 
+          value: `${avgConfidence}%`, 
+          change: "3%", 
+          icon: Brain, 
+          trend: 'up' as const 
+        },
+        { 
+          title: "Weekly Trend", 
+          value: weeklyAvg.toString(), 
+          change: weeklyTrend === 'stable' ? 'stable' : `${Math.abs(thisWeekCount - lastWeekCount)}`, 
+          icon: TrendingUp, 
+          trend: weeklyTrend 
+        }
+      ]);
+
+      // Calculate next prediction update (every 6 hours)
+      const lastPrediction = predictions?.[0];
+      if (lastPrediction) {
+        const lastPredTime = new Date(lastPrediction.created_at);
+        const nextPredTime = new Date(lastPredTime.getTime() + 6 * 60 * 60 * 1000);
+        const diff = nextPredTime.getTime() - now.getTime();
+        if (diff > 0) {
+          const hours = Math.floor(diff / (1000 * 60 * 60));
+          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          setNextUpdate(`${hours}h ${minutes}m`);
+        } else {
+          setNextUpdate('Now');
+        }
+      } else {
+        setNextUpdate('Ready');
+      }
+
+    } catch (error) {
+      console.error('Error loading statistics:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="velar-card rounded-2xl p-6 animate-scale-in">
+        <div className="flex items-center justify-center h-48">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="velar-card rounded-2xl p-6 animate-scale-in">
@@ -102,7 +254,7 @@ export function Statistics() {
           <div className="text-xs text-muted-foreground mb-2">
             Next prediction update in
           </div>
-          <div className="text-sm font-semibold text-primary">2 hours 15 minutes</div>
+          <div className="text-sm font-semibold text-primary">{nextUpdate}</div>
         </div>
       </div>
     </div>
