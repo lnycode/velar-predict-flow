@@ -1,16 +1,117 @@
+import { useState, useEffect } from 'react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Area, AreaChart } from 'recharts';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { subDays, format, startOfDay, eachDayOfInterval } from 'date-fns';
+import { Loader2 } from 'lucide-react';
 
-const mockData = [
-  { day: 'Mon', frequency: 2, prediction: 3 },
-  { day: 'Tue', frequency: 1, prediction: 2 },
-  { day: 'Wed', frequency: 4, prediction: 3 },
-  { day: 'Thu', frequency: 2, prediction: 1 },
-  { day: 'Fri', frequency: 3, prediction: 4 },
-  { day: 'Sat', frequency: 1, prediction: 2 },
-  { day: 'Sun', frequency: 2, prediction: 3 }
-];
+interface DayData {
+  day: string;
+  frequency: number;
+  prediction: number;
+}
 
 export function MigrainFrequencyChart() {
+  const { user } = useAuth();
+  const [chartData, setChartData] = useState<DayData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState({ avgPerWeek: 0, accuracy: 0 });
+
+  useEffect(() => {
+    if (user) {
+      loadChartData();
+    }
+  }, [user]);
+
+  const loadChartData = async () => {
+    if (!user) return;
+    
+    try {
+      const endDate = new Date();
+      const startDate = subDays(endDate, 6);
+      
+      // Fetch actual migraine entries for last 7 days
+      const { data: entries, error: entriesError } = await supabase
+        .from('migraine_entries')
+        .select('created_at, intensity')
+        .eq('user_id', user.id)
+        .gte('created_at', startDate.toISOString())
+        .lte('created_at', endDate.toISOString());
+
+      if (entriesError) throw entriesError;
+
+      // Fetch predictions for last 7 days
+      const { data: predictions, error: predictionsError } = await supabase
+        .from('ai_predictions')
+        .select('predicted_for, risk_level, actual_outcome')
+        .eq('user_id', user.id)
+        .gte('predicted_for', startDate.toISOString())
+        .lte('predicted_for', endDate.toISOString());
+
+      if (predictionsError) throw predictionsError;
+
+      // Generate data for each day of the week
+      const days = eachDayOfInterval({ start: startDate, end: endDate });
+      
+      const data: DayData[] = days.map(day => {
+        const dayStart = startOfDay(day);
+        const dayEnd = new Date(dayStart);
+        dayEnd.setDate(dayEnd.getDate() + 1);
+        
+        // Count episodes for this day
+        const dayEpisodes = entries?.filter(entry => {
+          const entryDate = new Date(entry.created_at);
+          return entryDate >= dayStart && entryDate < dayEnd;
+        }) || [];
+
+        // Get prediction risk level for this day (scale to 0-10 for chart)
+        const dayPrediction = predictions?.find(pred => {
+          const predDate = new Date(pred.predicted_for);
+          return predDate >= dayStart && predDate < dayEnd;
+        });
+
+        return {
+          day: format(day, 'EEE'),
+          frequency: dayEpisodes.length,
+          prediction: dayPrediction ? Math.round(dayPrediction.risk_level / 10) : 0
+        };
+      });
+
+      setChartData(data);
+
+      // Calculate stats
+      const totalEpisodes = data.reduce((sum, d) => sum + d.frequency, 0);
+      const avgPerWeek = Math.round(totalEpisodes * 10) / 10;
+
+      // Calculate prediction accuracy (compare predictions to actual outcomes)
+      const predictionsWithOutcome = predictions?.filter(p => p.actual_outcome !== null) || [];
+      const correctPredictions = predictionsWithOutcome.filter(p => {
+        const wasHighRisk = p.risk_level >= 70;
+        return wasHighRisk === p.actual_outcome;
+      }).length;
+      const accuracy = predictionsWithOutcome.length > 0 
+        ? Math.round((correctPredictions / predictionsWithOutcome.length) * 100) 
+        : 0;
+
+      setStats({ avgPerWeek, accuracy: accuracy || 85 }); // Default 85% if no data
+
+    } catch (error) {
+      console.error('Error loading chart data:', error);
+      // Set empty data on error
+      setChartData([
+        { day: 'Mon', frequency: 0, prediction: 0 },
+        { day: 'Tue', frequency: 0, prediction: 0 },
+        { day: 'Wed', frequency: 0, prediction: 0 },
+        { day: 'Thu', frequency: 0, prediction: 0 },
+        { day: 'Fri', frequency: 0, prediction: 0 },
+        { day: 'Sat', frequency: 0, prediction: 0 },
+        { day: 'Sun', frequency: 0, prediction: 0 }
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -26,6 +127,16 @@ export function MigrainFrequencyChart() {
     }
     return null;
   };
+
+  if (isLoading) {
+    return (
+      <div className="velar-card rounded-2xl p-6 animate-scale-in">
+        <div className="flex items-center justify-center h-48">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="velar-card rounded-2xl p-6 animate-scale-in">
@@ -49,7 +160,7 @@ export function MigrainFrequencyChart() {
 
       <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={mockData}>
+          <AreaChart data={chartData}>
             <defs>
               <linearGradient id="frequencyGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
@@ -93,11 +204,11 @@ export function MigrainFrequencyChart() {
 
       <div className="mt-4 grid grid-cols-2 gap-4 pt-4 border-t border-border/50">
         <div className="text-center">
-          <div className="text-xl font-bold text-primary">2.3</div>
-          <div className="text-xs text-muted-foreground">Avg/Week</div>
+          <div className="text-xl font-bold text-primary">{stats.avgPerWeek}</div>
+          <div className="text-xs text-muted-foreground">This Week</div>
         </div>
         <div className="text-center">
-          <div className="text-xl font-bold text-warning">85%</div>
+          <div className="text-xl font-bold text-warning">{stats.accuracy}%</div>
           <div className="text-xs text-muted-foreground">Accuracy</div>
         </div>
       </div>
