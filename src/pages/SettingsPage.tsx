@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -5,9 +6,199 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { User, Bell, Shield, Download, Trash2, Save } from "lucide-react";
+import { User, Bell, Shield, Download, Trash2, Save, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 export default function SettingsPage() {
+  const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Profile state
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [timezone, setTimezone] = useState("UTC");
+  
+  // Notification state
+  const [weatherAlerts, setWeatherAlerts] = useState(true);
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [aiPredictions, setAiPredictions] = useState(true);
+  
+  // Medical info state
+  const [migraineType, setMigraineType] = useState("");
+  const [knownTriggers, setKnownTriggers] = useState("");
+  const [currentMedications, setCurrentMedications] = useState("");
+  const [weatherSensitivity, setWeatherSensitivity] = useState("medium");
+
+  // Stats
+  const [totalEntries, setTotalEntries] = useState(0);
+  const [accuracy, setAccuracy] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+      loadProfile();
+      loadStats();
+    }
+  }, [user]);
+
+  const loadProfile = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+
+      if (data) {
+        setFirstName(data.first_name || "");
+        setLastName(data.last_name || "");
+        setEmail(data.email || user.email || "");
+        setTimezone(data.timezone || "UTC");
+        setWeatherAlerts(data.weather_alerts ?? true);
+        setEmailNotifications(data.email_notifications ?? true);
+        setAiPredictions(data.ai_predictions_enabled ?? true);
+        setMigraineType(data.migraine_type || "");
+        setKnownTriggers(data.known_triggers || "");
+        setCurrentMedications(data.current_medications || "");
+        setWeatherSensitivity(data.weather_sensitivity || "medium");
+      } else {
+        setEmail(user.email || "");
+      }
+    } catch (error) {
+      console.error('Error loading profile:', error);
+      toast.error('Failed to load profile');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadStats = async () => {
+    if (!user) return;
+
+    try {
+      // Get total entries
+      const { count: entriesCount } = await supabase
+        .from('migraine_entries')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+
+      setTotalEntries(entriesCount || 0);
+
+      // Get prediction accuracy
+      const { data: predictions } = await supabase
+        .from('ai_predictions')
+        .select('*')
+        .eq('user_id', user.id)
+        .not('actual_outcome', 'is', null);
+
+      if (predictions && predictions.length > 0) {
+        const correct = predictions.filter(p => 
+          (p.actual_outcome === true && p.risk_level >= 50) || 
+          (p.actual_outcome === false && p.risk_level < 50)
+        ).length;
+        setAccuracy(Math.round((correct / predictions.length) * 100));
+      } else {
+        setAccuracy(85); // Default
+      }
+    } catch (error) {
+      console.error('Error loading stats:', error);
+    }
+  };
+
+  const saveProfile = async () => {
+    if (!user) return;
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          user_id: user.id,
+          first_name: firstName,
+          last_name: lastName,
+          email: email,
+          timezone: timezone,
+          weather_alerts: weatherAlerts,
+          email_notifications: emailNotifications,
+          ai_predictions_enabled: aiPredictions,
+          migraine_type: migraineType,
+          known_triggers: knownTriggers,
+          current_medications: currentMedications,
+          weather_sensitivity: weatherSensitivity,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (error) throw error;
+
+      toast.success('Profile saved successfully!');
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      toast.error('Failed to save profile');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleExportData = async () => {
+    if (!user) return;
+
+    try {
+      const { data: entries } = await supabase
+        .from('migraine_entries')
+        .select('*')
+        .eq('user_id', user.id);
+
+      const { data: predictions } = await supabase
+        .from('ai_predictions')
+        .select('*')
+        .eq('user_id', user.id);
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      const exportData = {
+        exportDate: new Date().toISOString(),
+        profile: profile,
+        migraineEntries: entries,
+        predictions: predictions
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `velar-data-export-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+
+      toast.success('Data exported successfully!');
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      toast.error('Failed to export data');
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 animate-fade-in-up">
       <div>
@@ -29,36 +220,55 @@ export default function SettingsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" defaultValue="Alex" className="bg-background border-border/50" />
+                <Input 
+                  id="firstName" 
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="bg-background border-border/50" 
+                />
               </div>
               <div>
                 <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" defaultValue="Johnson" className="bg-background border-border/50" />
+                <Input 
+                  id="lastName" 
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="bg-background border-border/50" 
+                />
               </div>
             </div>
             
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" defaultValue="alex@example.com" className="bg-background border-border/50" />
+              <Input 
+                id="email" 
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="bg-background border-border/50" 
+              />
             </div>
             
             <div>
               <Label htmlFor="timezone">Timezone</Label>
-              <Select defaultValue="est">
+              <Select value={timezone} onValueChange={setTimezone}>
                 <SelectTrigger className="bg-background border-border/50">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="est">Eastern (EST)</SelectItem>
-                  <SelectItem value="cst">Central (CST)</SelectItem>
-                  <SelectItem value="mst">Mountain (MST)</SelectItem>
-                  <SelectItem value="pst">Pacific (PST)</SelectItem>
+                  <SelectItem value="UTC">UTC</SelectItem>
+                  <SelectItem value="Europe/Berlin">Europe/Berlin (CET)</SelectItem>
+                  <SelectItem value="Europe/London">Europe/London (GMT)</SelectItem>
+                  <SelectItem value="America/New_York">Eastern (EST)</SelectItem>
+                  <SelectItem value="America/Chicago">Central (CST)</SelectItem>
+                  <SelectItem value="America/Denver">Mountain (MST)</SelectItem>
+                  <SelectItem value="America/Los_Angeles">Pacific (PST)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
-            <Button className="w-full velar-button-primary">
-              <Save className="w-4 h-4 mr-2" />
+            <Button onClick={saveProfile} disabled={isSaving} className="w-full velar-button-primary">
+              {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
               Save Profile
             </Button>
           </CardContent>
@@ -79,46 +289,35 @@ export default function SettingsPage() {
                 <Label htmlFor="weatherAlerts">Weather Alerts</Label>
                 <p className="text-sm text-muted-foreground">High-risk weather notifications</p>
               </div>
-              <Switch id="weatherAlerts" defaultChecked />
+              <Switch 
+                id="weatherAlerts" 
+                checked={weatherAlerts}
+                onCheckedChange={setWeatherAlerts}
+              />
             </div>
             
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="medicationReminders">Medication Reminders</Label>
-                <p className="text-sm text-muted-foreground">Preventive medication alerts</p>
+                <Label htmlFor="emailNotifications">Email Notifications</Label>
+                <p className="text-sm text-muted-foreground">Receive email updates</p>
               </div>
-              <Switch id="medicationReminders" defaultChecked />
+              <Switch 
+                id="emailNotifications" 
+                checked={emailNotifications}
+                onCheckedChange={setEmailNotifications}
+              />
             </div>
             
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="patternAlerts">Pattern Alerts</Label>
-                <p className="text-sm text-muted-foreground">AI-detected pattern notifications</p>
+                <Label htmlFor="aiPredictions">AI Predictions</Label>
+                <p className="text-sm text-muted-foreground">Enable AI-powered predictions</p>
               </div>
-              <Switch id="patternAlerts" defaultChecked />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <Label htmlFor="weeklyReports">Weekly Reports</Label>
-                <p className="text-sm text-muted-foreground">Summary emails</p>
-              </div>
-              <Switch id="weeklyReports" />
-            </div>
-            
-            <div>
-              <Label htmlFor="alertTiming">Alert Timing</Label>
-              <Select defaultValue="6hours">
-                <SelectTrigger className="bg-background border-border/50">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1hour">1 hour before</SelectItem>
-                  <SelectItem value="3hours">3 hours before</SelectItem>
-                  <SelectItem value="6hours">6 hours before</SelectItem>
-                  <SelectItem value="12hours">12 hours before</SelectItem>
-                </SelectContent>
-              </Select>
+              <Switch 
+                id="aiPredictions" 
+                checked={aiPredictions}
+                onCheckedChange={setAiPredictions}
+              />
             </div>
           </CardContent>
         </Card>
@@ -135,15 +334,16 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="migrainType">Migraine Type</Label>
-              <Select defaultValue="episodic">
+              <Select value={migraineType} onValueChange={setMigraineType}>
                 <SelectTrigger className="bg-background border-border/50">
-                  <SelectValue />
+                  <SelectValue placeholder="Select migraine type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="episodic">Episodic Migraine</SelectItem>
                   <SelectItem value="chronic">Chronic Migraine</SelectItem>
                   <SelectItem value="aura">Migraine with Aura</SelectItem>
                   <SelectItem value="basilar">Basilar Migraine</SelectItem>
+                  <SelectItem value="vestibular">Vestibular Migraine</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -154,7 +354,8 @@ export default function SettingsPage() {
                 id="commonTriggers" 
                 placeholder="e.g., stress, certain foods, weather changes..."
                 className="bg-background border-border/50"
-                defaultValue="Weather changes, stress, lack of sleep, bright lights"
+                value={knownTriggers}
+                onChange={(e) => setKnownTriggers(e.target.value)}
               />
             </div>
             
@@ -164,13 +365,14 @@ export default function SettingsPage() {
                 id="medications" 
                 placeholder="List preventive and rescue medications..."
                 className="bg-background border-border/50"
-                defaultValue="Sumatriptan 50mg (rescue), Propranolol 40mg (preventive)"
+                value={currentMedications}
+                onChange={(e) => setCurrentMedications(e.target.value)}
               />
             </div>
             
             <div>
               <Label htmlFor="weatherSensitivity">Weather Sensitivity Level</Label>
-              <Select defaultValue="high">
+              <Select value={weatherSensitivity} onValueChange={setWeatherSensitivity}>
                 <SelectTrigger className="bg-background border-border/50">
                   <SelectValue />
                 </SelectTrigger>
@@ -182,6 +384,11 @@ export default function SettingsPage() {
                 </SelectContent>
               </Select>
             </div>
+
+            <Button onClick={saveProfile} disabled={isSaving} className="w-full velar-button-primary">
+              {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+              Save Medical Info
+            </Button>
           </CardContent>
         </Card>
 
@@ -195,24 +402,22 @@ export default function SettingsPage() {
             <CardDescription>Manage your data and privacy settings</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Data Sharing for Research</Label>
-                <p className="text-sm text-muted-foreground">Help improve migraine research (anonymized)</p>
+            <div className="p-4 bg-secondary/20 rounded-lg">
+              <div className="text-sm text-muted-foreground mb-2">Your Data Summary</div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-lg font-bold text-primary">{totalEntries}</div>
+                  <div className="text-xs text-muted-foreground">Migraine Entries</div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-success">{accuracy}%</div>
+                  <div className="text-xs text-muted-foreground">Prediction Accuracy</div>
+                </div>
               </div>
-              <Switch defaultChecked />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Location Services</Label>
-                <p className="text-sm text-muted-foreground">For local weather data</p>
-              </div>
-              <Switch defaultChecked />
             </div>
             
             <div className="space-y-2">
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full" onClick={handleExportData}>
                 <Download className="w-4 h-4 mr-2" />
                 Export My Data
               </Button>
@@ -243,12 +448,12 @@ export default function SettingsPage() {
               <div className="text-sm text-muted-foreground">App Version</div>
             </div>
             <div>
-              <div className="text-lg font-bold text-warning">94%</div>
-              <div className="text-sm text-muted-foreground">AI Accuracy</div>
+              <div className="text-lg font-bold text-warning">{accuracy}%</div>
+              <div className="text-sm text-muted-foreground">Your AI Accuracy</div>
             </div>
             <div>
-              <div className="text-lg font-bold text-success">2.1M</div>
-              <div className="text-sm text-muted-foreground">Global Users</div>
+              <div className="text-lg font-bold text-success">{totalEntries}</div>
+              <div className="text-sm text-muted-foreground">Your Entries</div>
             </div>
           </div>
           
