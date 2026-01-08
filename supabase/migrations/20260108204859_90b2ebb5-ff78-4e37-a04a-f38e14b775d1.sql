@@ -1,0 +1,6 @@
+INSERT INTO migraine_entries (user_id, created_at, severity, intensity, duration, location, medication_taken, note, trigger_detected, temperature, humidity, pressure, weather_type) VALUES
+('8e8ddbf5-e481-4a17-a8e6-972ea097ea61', NOW() - INTERVAL '1 day', 7, 6, 180, 'Berlin', 'Ibuprofen', 'Strong headache after stressful meeting, light sensitivity', true, 22.5, 65, 1013, 'clouds'),
+('8e8ddbf5-e481-4a17-a8e6-972ea097ea61', NOW() - INTERVAL '3 days', 5, 4, 120, 'Berlin', 'Paracetamol', 'Mild migraine started in afternoon, triggered by screen time', true, 18.3, 72, 1008, 'rain'),
+('8e8ddbf5-e481-4a17-a8e6-972ea097ea61', NOW() - INTERVAL '5 days', 8, 7, 240, 'Munich', 'Sumatriptan', 'Severe episode with aura, nausea present. Weather change likely trigger', true, 15.0, 85, 998, 'thunderstorm'),
+('8e8ddbf5-e481-4a17-a8e6-972ea097ea61', NOW() - INTERVAL '8 days', 4, 3, 90, 'Berlin', NULL, 'Mild tension headache, resolved with rest and hydration', false, 24.1, 55, 1020, 'clear'),
+('8e8ddbf5-e481-4a17-a8e6-972ea097ea61', NOW() - INTERVAL '12 days', 6, 5, 150, 'Berlin', 'Ibuprofen', 'Moderate migraine, poor sleep night before. Coffee helped slightly', true, 20.8, 68, 1015, 'clouds')
