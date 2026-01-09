@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Area, AreaChart } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,26 +11,43 @@ interface DayData {
   prediction: number;
 }
 
-export function MigrainFrequencyChart() {
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{ dataKey: string; value: number; color: string }>;
+  label?: string;
+}
+
+const CustomTooltip = memo(({ active, payload, label }: CustomTooltipProps) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-card/90 backdrop-blur-sm border border-border/50 rounded-lg p-3 shadow-lg">
+        <p className="text-sm font-medium text-foreground">{`${label}`}</p>
+        {payload.map((entry, index) => (
+          <p key={index} className="text-sm" style={{ color: entry.color }}>
+            {`${entry.dataKey === 'frequency' ? 'Actual' : 'Predicted'}: ${entry.value}`}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+});
+
+CustomTooltip.displayName = 'CustomTooltip';
+
+function MigrainFrequencyChartComponent() {
   const { user } = useAuth();
   const [chartData, setChartData] = useState<DayData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({ avgPerWeek: 0, accuracy: 0 });
 
-  useEffect(() => {
-    if (user) {
-      loadChartData();
-    }
-  }, [user]);
-
-  const loadChartData = async () => {
+  const loadChartData = useCallback(async () => {
     if (!user) return;
     
     try {
       const endDate = new Date();
       const startDate = subDays(endDate, 6);
       
-      // Fetch actual migraine entries for last 7 days
       const { data: entries, error: entriesError } = await supabase
         .from('migraine_entries')
         .select('created_at, intensity')
@@ -40,7 +57,6 @@ export function MigrainFrequencyChart() {
 
       if (entriesError) throw entriesError;
 
-      // Fetch predictions for last 7 days
       const { data: predictions, error: predictionsError } = await supabase
         .from('ai_predictions')
         .select('predicted_for, risk_level, actual_outcome')
@@ -50,7 +66,6 @@ export function MigrainFrequencyChart() {
 
       if (predictionsError) throw predictionsError;
 
-      // Generate data for each day of the week
       const days = eachDayOfInterval({ start: startDate, end: endDate });
       
       const data: DayData[] = days.map(day => {
@@ -58,13 +73,11 @@ export function MigrainFrequencyChart() {
         const dayEnd = new Date(dayStart);
         dayEnd.setDate(dayEnd.getDate() + 1);
         
-        // Count episodes for this day
         const dayEpisodes = entries?.filter(entry => {
           const entryDate = new Date(entry.created_at);
           return entryDate >= dayStart && entryDate < dayEnd;
         }) || [];
 
-        // Get prediction risk level for this day (scale to 0-10 for chart)
         const dayPrediction = predictions?.find(pred => {
           const predDate = new Date(pred.predicted_for);
           return predDate >= dayStart && predDate < dayEnd;
@@ -79,11 +92,9 @@ export function MigrainFrequencyChart() {
 
       setChartData(data);
 
-      // Calculate stats
       const totalEpisodes = data.reduce((sum, d) => sum + d.frequency, 0);
       const avgPerWeek = Math.round(totalEpisodes * 10) / 10;
 
-      // Calculate prediction accuracy (compare predictions to actual outcomes)
       const predictionsWithOutcome = predictions?.filter(p => p.actual_outcome !== null) || [];
       const correctPredictions = predictionsWithOutcome.filter(p => {
         const wasHighRisk = p.risk_level >= 70;
@@ -93,11 +104,10 @@ export function MigrainFrequencyChart() {
         ? Math.round((correctPredictions / predictionsWithOutcome.length) * 100) 
         : 0;
 
-      setStats({ avgPerWeek, accuracy: accuracy || 85 }); // Default 85% if no data
+      setStats({ avgPerWeek, accuracy: accuracy || 85 });
 
     } catch (error) {
       console.error('Error loading chart data:', error);
-      // Set empty data on error
       setChartData([
         { day: 'Mon', frequency: 0, prediction: 0 },
         { day: 'Tue', frequency: 0, prediction: 0 },
@@ -110,23 +120,26 @@ export function MigrainFrequencyChart() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-card/90 backdrop-blur-sm border border-border/50 rounded-lg p-3 shadow-lg">
-          <p className="text-sm font-medium text-foreground">{`${label}`}</p>
-          {payload.map((entry: any, index: number) => (
-            <p key={index} className="text-sm" style={{ color: entry.color }}>
-              {`${entry.dataKey === 'frequency' ? 'Actual' : 'Predicted'}: ${entry.value}`}
-            </p>
-          ))}
-        </div>
-      );
+  useEffect(() => {
+    if (user) {
+      loadChartData();
     }
-    return null;
-  };
+  }, [user, loadChartData]);
+
+  const chartGradients = useMemo(() => (
+    <defs>
+      <linearGradient id="frequencyGradient" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.05}/>
+      </linearGradient>
+      <linearGradient id="predictionGradient" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="5%" stopColor="hsl(var(--warning))" stopOpacity={0.3}/>
+        <stop offset="95%" stopColor="hsl(var(--warning))" stopOpacity={0.05}/>
+      </linearGradient>
+    </defs>
+  ), []);
 
   if (isLoading) {
     return (
@@ -161,16 +174,7 @@ export function MigrainFrequencyChart() {
       <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData}>
-            <defs>
-              <linearGradient id="frequencyGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.05}/>
-              </linearGradient>
-              <linearGradient id="predictionGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(var(--warning))" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="hsl(var(--warning))" stopOpacity={0.05}/>
-              </linearGradient>
-            </defs>
+            {chartGradients}
             <XAxis 
               dataKey="day" 
               axisLine={false}
@@ -215,3 +219,5 @@ export function MigrainFrequencyChart() {
     </div>
   );
 }
+
+export const MigrainFrequencyChart = memo(MigrainFrequencyChartComponent);

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -63,14 +63,14 @@ const getWeatherIcon = (conditions: string) => {
   }
 };
 
-export const RiskForecast: React.FC = () => {
+const RiskForecastComponent: React.FC = () => {
   const { user, session } = useAuth();
   const { toast } = useToast();
   const [forecasts, setForecasts] = useState<WeatherForecast[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
-  const fetchForecast = async () => {
+  const fetchForecast = useCallback(async () => {
     if (!user || !session) return;
 
     setIsLoading(true);
@@ -173,13 +173,13 @@ export const RiskForecast: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, session, toast]);
 
   useEffect(() => {
     fetchForecast();
-  }, [user, session]);
+  }, [fetchForecast]);
 
-  const formatDate = (dateStr: string) => {
+  const formatDate = useCallback((dateStr: string) => {
     const date = new Date(dateStr);
     const today = new Date();
     const tomorrow = new Date(today);
@@ -193,7 +193,7 @@ export const RiskForecast: React.FC = () => {
       day: 'numeric', 
       month: 'short' 
     });
-  };
+  }, []);
 
   return (
     <Card className="velar-card">
@@ -347,3 +347,5 @@ export const RiskForecast: React.FC = () => {
     </Card>
   );
 };
+
+export const RiskForecast = memo(RiskForecastComponent);
