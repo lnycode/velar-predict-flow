@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo, memo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { format, subDays, subMonths, isAfter, parseISO } from "date-fns";
 
-export default function HistoryPage() {
+function HistoryPageComponent() {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterPeriod, setFilterPeriod] = useState("all");
@@ -32,13 +32,7 @@ export default function HistoryPage() {
   const [physicianName, setPhysicianName] = useState("");
   const [reportPeriod, setReportPeriod] = useState("30");
 
-  useEffect(() => {
-    if (user) {
-      loadMigraineHistory();
-    }
-  }, [user]);
-
-  const loadMigraineHistory = async () => {
+  const loadMigraineHistory = useCallback(async () => {
     if (!user) return;
     
     setIsLoading(true);
@@ -51,7 +45,6 @@ export default function HistoryPage() {
 
       if (error) throw error;
 
-      // Transform entries to MigrainEpisode format
       const episodes: MigrainEpisode[] = (entries || []).map((entry, index) => {
         const createdAt = new Date(entry.created_at || '');
         const severity = entry.severity || entry.intensity || 5;
@@ -59,7 +52,6 @@ export default function HistoryPage() {
         if (severity <= 3) severityText = 'Mild';
         else if (severity >= 7) severityText = 'Severe';
 
-        // Parse triggers from note
         const triggers: string[] = [];
         if (entry.trigger_detected) triggers.push('Trigger detected');
         if (entry.note) {
@@ -90,7 +82,6 @@ export default function HistoryPage() {
 
       setMigrainHistory(episodes);
 
-      // Calculate stats
       const totalEpisodes = episodes.length;
       const avgDuration = episodes.length > 0 
         ? Math.round(episodes.reduce((sum, e) => sum + parseInt(e.duration), 0) / episodes.length * 10) / 10
@@ -100,7 +91,6 @@ export default function HistoryPage() {
         ? Math.round(episodes.filter(e => e.triggers.includes('Weather') || e.triggers.includes('Pressure change')).length / episodes.length * 100)
         : 0;
 
-      // Calculate monthly trend
       const now = new Date();
       const thisMonthEntries = entries?.filter(e => {
         const date = new Date(e.created_at || '');
@@ -130,12 +120,17 @@ export default function HistoryPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
 
-  const getFilteredEpisodes = () => {
+  useEffect(() => {
+    if (user) {
+      loadMigraineHistory();
+    }
+  }, [user, loadMigraineHistory]);
+
+  const filteredEpisodes = useMemo(() => {
     let filtered = [...migrainHistory];
 
-    // Filter by search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(e => 
@@ -145,7 +140,6 @@ export default function HistoryPage() {
       );
     }
 
-    // Filter by period
     if (filterPeriod !== 'all') {
       const now = new Date();
       let cutoffDate: Date;
@@ -167,23 +161,21 @@ export default function HistoryPage() {
       filtered = filtered.filter(e => isAfter(parseISO(e.date), cutoffDate));
     }
 
-    // Filter by severity
     if (filterSeverity !== 'all') {
       filtered = filtered.filter(e => e.severity.toLowerCase() === filterSeverity);
     }
 
     return filtered;
-  };
+  }, [migrainHistory, searchTerm, filterPeriod, filterSeverity]);
 
-  const handleExportPDF = () => {
+  const handleExportPDF = useCallback(() => {
     try {
-      const filtered = getFilteredEpisodes();
-      if (filtered.length === 0) {
+      if (filteredEpisodes.length === 0) {
         toast.error('No episodes to export for the selected period');
         return;
       }
 
-      generateMigrainePDF(filtered, parseInt(reportPeriod), {
+      generateMigrainePDF(filteredEpisodes, parseInt(reportPeriod), {
         name: patientName || "Patient Name",
         dateOfBirth: dateOfBirth || "Not Provided",
         physicianName: physicianName || undefined,
@@ -194,19 +186,18 @@ export default function HistoryPage() {
       toast.error("Failed to generate PDF report");
       console.error(error);
     }
-  };
+  }, [filteredEpisodes, reportPeriod, patientName, dateOfBirth, physicianName]);
 
-  const handleExportCSV = () => {
+  const handleExportCSV = useCallback(() => {
     try {
-      const filtered = getFilteredEpisodes();
-      if (filtered.length === 0) {
+      if (filteredEpisodes.length === 0) {
         toast.error('No episodes to export');
         return;
       }
 
       const csvContent = [
         ['Date', 'Time', 'Severity', 'Duration', 'Triggers', 'Location', 'Medication', 'Temperature', 'Humidity', 'Pressure'],
-        ...filtered.map(episode => [
+        ...filteredEpisodes.map(episode => [
           episode.date,
           episode.time,
           episode.severity,
@@ -233,18 +224,16 @@ export default function HistoryPage() {
       toast.error("Failed to export CSV");
       console.error(error);
     }
-  };
+  }, [filteredEpisodes]);
 
-  const getSeverityColor = (severity: string) => {
+  const getSeverityColor = useCallback((severity: string) => {
     switch (severity.toLowerCase()) {
       case 'mild': return 'bg-success/20 text-success';
       case 'moderate': return 'bg-warning/20 text-warning';
       case 'severe': return 'bg-destructive/20 text-destructive';
       default: return 'bg-muted/20 text-muted-foreground';
     }
-  };
-
-  const filteredEpisodes = getFilteredEpisodes();
+  }, []);
 
   if (isLoading) {
     return (
@@ -531,3 +520,5 @@ export default function HistoryPage() {
     </div>
   );
 }
+
+export default memo(HistoryPageComponent);

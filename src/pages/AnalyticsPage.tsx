@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo, memo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { DisclaimerFooter } from "@/components/layout/DisclaimerFooter";
@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { TrendingUp, Clock, MapPin, Zap, Loader2 } from "lucide-react";
 import { subMonths, format, startOfMonth, endOfMonth, getHours } from "date-fns";
 
-export default function AnalyticsPage() {
+function AnalyticsPageComponent() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [monthlyData, setMonthlyData] = useState<Array<{ month: string; episodes: number; severity: number }>>([]);
@@ -15,15 +15,10 @@ export default function AnalyticsPage() {
   const [timeData, setTimeData] = useState<Array<{ time: string; count: number }>>([]);
   const [metrics, setMetrics] = useState({ reduction: 0, avgDuration: 0, weatherRelated: 0, accuracy: 0 });
 
-  useEffect(() => {
-    if (user) loadAnalytics();
-  }, [user]);
-
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     if (!user) return;
     
     try {
-      // Fetch all migraine entries
       const { data: entries } = await supabase
         .from('migraine_entries')
         .select('*')
@@ -35,7 +30,6 @@ export default function AnalyticsPage() {
         return;
       }
 
-      // Monthly data for last 7 months
       const monthly: Array<{ month: string; episodes: number; severity: number }> = [];
       for (let i = 6; i >= 0; i--) {
         const monthDate = subMonths(new Date(), i);
@@ -59,7 +53,6 @@ export default function AnalyticsPage() {
       }
       setMonthlyData(monthly);
 
-      // Trigger analysis from notes
       const triggerCounts: Record<string, number> = {
         'Weather Changes': 0, 'Stress': 0, 'Sleep Issues': 0, 'Food/Drink': 0, 'Hormonal': 0
       };
@@ -80,7 +73,6 @@ export default function AnalyticsPage() {
         name, value: Math.round((count / total) * 100), color: colors[i]
       })));
 
-      // Time of day analysis
       const timeBuckets: Record<string, number> = {
         '6-9 AM': 0, '9-12 PM': 0, '12-3 PM': 0, '3-6 PM': 0, '6-9 PM': 0, '9-12 AM': 0
       };
@@ -96,7 +88,6 @@ export default function AnalyticsPage() {
       });
       setTimeData(Object.entries(timeBuckets).map(([time, count]) => ({ time, count })));
 
-      // Calculate metrics
       const thisMonth = monthly[6]?.episodes || 0;
       const lastMonth = monthly[5]?.episodes || 1;
       const reduction = lastMonth > 0 ? Math.round(((lastMonth - thisMonth) / lastMonth) * 100) : 0;
@@ -119,7 +110,22 @@ export default function AnalyticsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) loadAnalytics();
+  }, [user, loadAnalytics]);
+
+  const tooltipStyle = useMemo(() => ({ 
+    backgroundColor: 'hsl(var(--card))', 
+    border: '1px solid hsl(var(--border))', 
+    borderRadius: '8px' 
+  }), []);
+
+  const axisTickStyle = useMemo(() => ({ 
+    fill: 'hsl(var(--muted-foreground))', 
+    fontSize: 12 
+  }), []);
 
   if (isLoading) {
     return (
@@ -198,9 +204,9 @@ export default function AnalyticsPage() {
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={monthlyData}>
-                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
+                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={axisTickStyle} />
+                  <YAxis axisLine={false} tickLine={false} tick={axisTickStyle} />
+                  <Tooltip contentStyle={tooltipStyle} />
                   <Line type="monotone" dataKey="episodes" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }} />
                 </LineChart>
               </ResponsiveContainer>
@@ -220,7 +226,7 @@ export default function AnalyticsPage() {
                   <Pie data={triggerData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value">
                     {triggerData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}
                   </Pie>
-                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
+                  <Tooltip contentStyle={tooltipStyle} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -245,9 +251,9 @@ export default function AnalyticsPage() {
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={timeData}>
-                  <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
+                  <XAxis dataKey="time" axisLine={false} tickLine={false} tick={axisTickStyle} />
+                  <YAxis axisLine={false} tickLine={false} tick={axisTickStyle} />
+                  <Tooltip contentStyle={tooltipStyle} />
                   <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -287,3 +293,5 @@ export default function AnalyticsPage() {
     </div>
   );
 }
+
+export default memo(AnalyticsPageComponent);

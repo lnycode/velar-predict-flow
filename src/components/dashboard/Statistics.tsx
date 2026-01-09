@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import { TrendingUp, Target, Brain, Calendar, Loader2 } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,7 +12,7 @@ interface StatCardProps {
   trend: 'up' | 'down' | 'stable';
 }
 
-function StatCard({ title, value, change, icon: Icon, trend }: StatCardProps) {
+const StatCard = memo(function StatCard({ title, value, change, icon: Icon, trend }: StatCardProps) {
   const getTrendColor = () => {
     switch (trend) {
       case 'up': return 'text-destructive';
@@ -46,9 +46,9 @@ function StatCard({ title, value, change, icon: Icon, trend }: StatCardProps) {
       </div>
     </div>
   );
-}
+});
 
-export function Statistics() {
+function StatisticsComponent() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState<Array<{
@@ -65,13 +65,7 @@ export function Statistics() {
   ]);
   const [nextUpdate, setNextUpdate] = useState('--');
 
-  useEffect(() => {
-    if (user) {
-      loadStats();
-    }
-  }, [user]);
-
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     if (!user) return;
     
     try {
@@ -81,7 +75,6 @@ export function Statistics() {
       const lastMonthStart = startOfMonth(subMonths(now, 1));
       const lastMonthEnd = endOfMonth(subMonths(now, 1));
 
-      // Get this month's episodes
       const { data: thisMonthEntries, error: thisMonthError } = await supabase
         .from('migraine_entries')
         .select('id')
@@ -91,7 +84,6 @@ export function Statistics() {
 
       if (thisMonthError) throw thisMonthError;
 
-      // Get last month's episodes for comparison
       const { data: lastMonthEntries, error: lastMonthError } = await supabase
         .from('migraine_entries')
         .select('id')
@@ -101,7 +93,6 @@ export function Statistics() {
 
       if (lastMonthError) throw lastMonthError;
 
-      // Get predictions and their accuracy
       const { data: predictions, error: predictionsError } = await supabase
         .from('ai_predictions')
         .select('risk_level, confidence, actual_outcome, created_at')
@@ -111,11 +102,9 @@ export function Statistics() {
 
       if (predictionsError) throw predictionsError;
 
-      // Calculate stats
       const thisMonthCount = thisMonthEntries?.length || 0;
       const lastMonthCount = lastMonthEntries?.length || 0;
       
-      // Calculate month-over-month change
       let monthChange = 0;
       let monthTrend: 'up' | 'down' | 'stable' = 'stable';
       if (lastMonthCount > 0) {
@@ -123,7 +112,6 @@ export function Statistics() {
         monthTrend = monthChange > 0 ? 'up' : monthChange < 0 ? 'down' : 'stable';
       }
 
-      // Calculate prediction accuracy
       const predictionsWithOutcome = predictions?.filter(p => p.actual_outcome !== null) || [];
       const correctPredictions = predictionsWithOutcome.filter(p => {
         const wasHighRisk = p.risk_level >= 70;
@@ -131,14 +119,12 @@ export function Statistics() {
       }).length;
       const accuracy = predictionsWithOutcome.length > 0 
         ? Math.round((correctPredictions / predictionsWithOutcome.length) * 100) 
-        : 85; // Default if no data
+        : 85;
 
-      // Calculate average confidence
       const avgConfidence = predictions && predictions.length > 0
         ? Math.round(predictions.reduce((sum, p) => sum + (p.confidence || 0), 0) / predictions.length * 100)
-        : 80; // Default if no data
+        : 80;
 
-      // Get weekly episodes for trend
       const weekAgo = subDays(now, 7);
       const twoWeeksAgo = subDays(now, 14);
       
@@ -194,7 +180,6 @@ export function Statistics() {
         }
       ]);
 
-      // Calculate next prediction update (every 6 hours)
       const lastPrediction = predictions?.[0];
       if (lastPrediction) {
         const lastPredTime = new Date(lastPrediction.created_at);
@@ -216,7 +201,13 @@ export function Statistics() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadStats();
+    }
+  }, [user, loadStats]);
 
   if (isLoading) {
     return (
@@ -260,3 +251,5 @@ export function Statistics() {
     </div>
   );
 }
+
+export const Statistics = memo(StatisticsComponent);
