@@ -8,6 +8,7 @@ import { AppLayout } from "./components/layout/AppLayout";
 import { AuthProvider } from "./hooks/useAuth";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { ErrorBoundary } from "./components/errors/ErrorBoundary";
+import { PageErrorBoundary } from "./components/errors/PageErrorBoundary";
 import { PageLoader } from "./components/ui/page-loader";
 
 // Lazy load all page components for code splitting
@@ -36,46 +37,70 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={
                     <ProtectedRoute>
-                      <Dashboard />
+                      <PageErrorBoundary>
+                        <Dashboard />
+                      </PageErrorBoundary>
                     </ProtectedRoute>
                   } />
-                  <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/auth" element={
+                    <PageErrorBoundary>
+                      <AuthPage />
+                    </PageErrorBoundary>
+                  } />
                   <Route path="/calendar" element={
                     <ProtectedRoute>
-                      <CalendarPage />
+                      <PageErrorBoundary>
+                        <CalendarPage />
+                      </PageErrorBoundary>
                     </ProtectedRoute>
                   } />
                   <Route path="/history" element={
                     <ProtectedRoute>
-                      <HistoryPage />
+                      <PageErrorBoundary>
+                        <HistoryPage />
+                      </PageErrorBoundary>
                     </ProtectedRoute>
                   } />
                   <Route path="/forecast" element={
                     <ProtectedRoute>
-                      <ForecastPage />
+                      <PageErrorBoundary>
+                        <ForecastPage />
+                      </PageErrorBoundary>
                     </ProtectedRoute>
                   } />
                   <Route path="/analytics" element={
                     <ProtectedRoute>
-                      <AnalyticsPage />
+                      <PageErrorBoundary>
+                        <AnalyticsPage />
+                      </PageErrorBoundary>
                     </ProtectedRoute>
                   } />
                   <Route path="/insights" element={
                     <ProtectedRoute>
-                      <InsightsPage />
+                      <PageErrorBoundary>
+                        <InsightsPage />
+                      </PageErrorBoundary>
                     </ProtectedRoute>
                   } />
                   <Route path="/settings" element={
                     <ProtectedRoute>
-                      <SettingsPage />
+                      <PageErrorBoundary>
+                        <SettingsPage />
+                      </PageErrorBoundary>
                     </ProtectedRoute>
                   } />
                   <Route path="/subscription-success" element={
                     <ProtectedRoute>
-                      <Dashboard />
+                      <PageErrorBoundary>
+                        <Dashboard />
+                      </PageErrorBoundary>
                     </ProtectedRoute>
                   } />
-                  <Route path="*" element={<NotFound />} />
+                  <Route path="*" element={
+                    <PageErrorBoundary>
+                      <NotFound />
+                    </PageErrorBoundary>
+                  } />
                 </Routes>
               </Suspense>
             </AppLayout>
