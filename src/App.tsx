@@ -13,6 +13,7 @@ import { PageLoader } from "./components/ui/page-loader";
 
 // Lazy load all page components for code splitting
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const DiaryPage = lazy(() => import("./pages/DiaryPage"));
 const CalendarPage = lazy(() => import("./pages/CalendarPage"));
 const HistoryPage = lazy(() => import("./pages/HistoryPage"));
 const ForecastPage = lazy(() => import("./pages/ForecastPage"));
@@ -46,6 +47,13 @@ const App = () => (
                     <PageErrorBoundary>
                       <AuthPage />
                     </PageErrorBoundary>
+                  } />
+                  <Route path="/diary" element={
+                    <ProtectedRoute>
+                      <PageErrorBoundary>
+                        <DiaryPage />
+                      </PageErrorBoundary>
+                    </ProtectedRoute>
                   } />
                   <Route path="/calendar" element={
                     <ProtectedRoute>
