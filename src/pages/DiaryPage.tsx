@@ -1,87 +1,87 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { MigraineDiary } from '@/components/migraine/MigraineDiary';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
+import { 
+  getMigraineEntries, 
+  deleteMigraineEntry, 
+  getMigraineStatistics 
+} from '@/domain/services';
+import type { MigraineEntry, MigraineStatistics } from '@/domain/types';
 import { 
   Calendar, Search, Filter, Trash2, Edit, 
   TrendingUp, BarChart3, Clock, MapPin 
 } from 'lucide-react';
 
-interface MigrainEntry {
-  id: string;
-  created_at: string;
-  severity: number;
-  intensity: number;
-  duration: number;
-  location: string;
-  note: string;
-  medication_taken: string;
-  effectiveness: number;
-  trigger_detected: boolean;
-}
-
 export default function DiaryPage() {
   const { user } = useAuth();
-  const [entries, setEntries] = useState<MigrainEntry[]>([]);
+  const [entries, setEntries] = useState<MigraineEntry[]>([]);
+  const [statistics, setStatistics] = useState<MigraineStatistics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showNewEntryForm, setShowNewEntryForm] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      loadEntries();
-    }
-  }, [user]);
-
-  const loadEntries = async () => {
+  const loadData = useCallback(async () => {
     if (!user) return;
     
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('migraine_entries')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50);
+      const [entriesResult, statsResult] = await Promise.all([
+        getMigraineEntries(user.id, 50),
+        getMigraineStatistics(user.id)
+      ]);
 
-      if (error) throw error;
-      setEntries(data || []);
+      if (entriesResult.success) {
+        setEntries(entriesResult.data);
+      } else {
+        toast.error('Fehler beim Laden der Einträge');
+      }
+
+      if (statsResult.success) {
+        setStatistics(statsResult.data);
+      }
     } catch (error) {
-      console.error('Error loading entries:', error);
+      console.error('Error loading data:', error);
+      toast.error('Fehler beim Laden der Daten');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
 
-  const handleEntryAdded = () => {
-    loadEntries();
-    setShowNewEntryForm(false);
-  };
-
-  const deleteEntry = async (entryId: string) => {
-    try {
-      const { error } = await supabase
-        .from('migraine_entries')
-        .delete()
-        .eq('id', entryId)
-        .eq('user_id', user?.id);
-
-      if (error) throw error;
-      loadEntries();
-    } catch (error) {
-      console.error('Error deleting entry:', error);
+  useEffect(() => {
+    if (user) {
+      loadData();
     }
-  };
+  }, [user, loadData]);
 
-  const filteredEntries = entries.filter(entry => 
-    entry.note?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    entry.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    entry.medication_taken?.toLowerCase().includes(searchTerm.toLowerCase())
+  const handleEntryAdded = useCallback(() => {
+    loadData();
+    setShowNewEntryForm(false);
+  }, [loadData]);
+
+  const handleDeleteEntry = useCallback(async (entryId: string) => {
+    if (!user) return;
+
+    const result = await deleteMigraineEntry(entryId, user.id);
+    
+    if (result.success) {
+      toast.success('Eintrag gelöscht');
+      loadData();
+    } else {
+      toast.error('Fehler beim Löschen des Eintrags');
+    }
+  }, [user, loadData]);
+
+  const filteredEntries = useMemo(() => 
+    entries.filter(entry => 
+      entry.note?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      entry.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      entry.medicationTaken?.toLowerCase().includes(searchTerm.toLowerCase())
+    ), [entries, searchTerm]
   );
 
   const getIntensityColor = (intensity: number) => {
@@ -123,7 +123,7 @@ export default function DiaryPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Gesamt Episoden</p>
-                <p className="text-2xl font-bold">{entries.length}</p>
+                <p className="text-2xl font-bold">{statistics?.totalEntries ?? 0}</p>
               </div>
               <BarChart3 className="w-8 h-8 text-primary" />
             </div>
@@ -136,10 +136,7 @@ export default function DiaryPage() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Ø Intensität</p>
                 <p className="text-2xl font-bold">
-                  {entries.length > 0 
-                    ? Math.round(entries.reduce((sum, e) => sum + e.intensity, 0) / entries.length * 10) / 10
-                    : '0'
-                  }
+                  {statistics?.averageIntensity?.toFixed(1) ?? '0'}
                 </p>
               </div>
               <TrendingUp className="w-8 h-8 text-primary" />
@@ -153,10 +150,7 @@ export default function DiaryPage() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Ø Dauer</p>
                 <p className="text-2xl font-bold">
-                  {entries.length > 0 
-                    ? Math.round(entries.reduce((sum, e) => sum + e.duration, 0) / entries.length * 10) / 10
-                    : '0'
-                  }h
+                  {statistics?.averageDuration?.toFixed(1) ?? '0'}h
                 </p>
               </div>
               <Clock className="w-8 h-8 text-primary" />
@@ -170,10 +164,7 @@ export default function DiaryPage() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Mit Triggern</p>
                 <p className="text-2xl font-bold">
-                  {entries.length > 0 
-                    ? Math.round(entries.filter(e => e.trigger_detected).length / entries.length * 100)
-                    : 0
-                  }%
+                  {statistics?.triggerPercentage?.toFixed(0) ?? 0}%
                 </p>
               </div>
               <Filter className="w-8 h-8 text-primary" />
@@ -261,7 +252,7 @@ export default function DiaryPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <div className="text-sm font-medium">
-                          {new Date(entry.created_at).toLocaleDateString('de-DE', {
+                          {entry.createdAt.toLocaleDateString('de-DE', {
                             weekday: 'short',
                             day: 'numeric',
                             month: 'short',
@@ -278,7 +269,7 @@ export default function DiaryPage() {
                           Intensität {entry.intensity}/10
                         </Badge>
                         
-                        {entry.trigger_detected && (
+                        {entry.triggerDetected && (
                           <Badge variant="outline">
                             Trigger erkannt
                           </Badge>
@@ -294,14 +285,14 @@ export default function DiaryPage() {
                             {entry.location}
                           </div>
                         )}
-                        {entry.effectiveness > 0 && (
+                        {entry.effectiveness && entry.effectiveness > 0 && (
                           <div>Wirksamkeit: {entry.effectiveness}/10</div>
                         )}
                       </div>
                       
-                      {entry.medication_taken && (
+                      {entry.medicationTaken && (
                         <div className="text-sm mb-2">
-                          <span className="font-medium">Medikamente:</span> {entry.medication_taken}
+                          <span className="font-medium">Medikamente:</span> {entry.medicationTaken}
                         </div>
                       )}
                       
@@ -319,7 +310,7 @@ export default function DiaryPage() {
                       <Button 
                         variant="ghost" 
                         size="sm"
-                        onClick={() => deleteEntry(entry.id)}
+                        onClick={() => handleDeleteEntry(entry.id)}
                         className="text-destructive hover:text-destructive"
                       >
                         <Trash2 className="w-4 h-4" />
