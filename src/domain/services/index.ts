@@ -7,6 +7,30 @@
  *   import { getMigraineEntries, getUserProfile } from '@/domain/services';
  */
 
-export * from './migraineService';
-export * from './profileService';
-export * from './predictionService';
+// Migraine Services
+export {
+  getMigraineEntries,
+  getRecentMigraineEntries,
+  getMigraineEntryById,
+  createMigraineEntry,
+  deleteMigraineEntry,
+  getMigraineStatistics,
+  getTotalEntriesCount,
+} from './migraineService';
+
+// Profile Services
+export {
+  getUserProfile,
+  updateUserProfile,
+  checkOnboardingComplete,
+  updateNotificationSettings,
+} from './profileService';
+
+// Prediction Services
+export {
+  getLatestPrediction,
+  getPredictionsForDateRange,
+  getUpcomingPredictions,
+  getPredictionAccuracy,
+  getCurrentRiskLevel,
+} from './predictionService';
