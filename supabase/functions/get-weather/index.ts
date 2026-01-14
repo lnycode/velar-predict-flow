@@ -7,6 +7,36 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Rate limiting configuration
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute window
+const RATE_LIMIT_MAX_REQUESTS = 30; // 30 requests per minute per user
+
+// In-memory rate limit store (resets on cold start)
+const rateLimitStore = new Map<string, { count: number; windowStart: number }>();
+
+function checkRateLimit(userId: string): { allowed: boolean; remaining: number; resetIn: number } {
+  const now = Date.now();
+  const userLimit = rateLimitStore.get(userId);
+  
+  if (!userLimit || now - userLimit.windowStart > RATE_LIMIT_WINDOW_MS) {
+    // New window
+    rateLimitStore.set(userId, { count: 1, windowStart: now });
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, resetIn: RATE_LIMIT_WINDOW_MS };
+  }
+  
+  if (userLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
+    const resetIn = RATE_LIMIT_WINDOW_MS - (now - userLimit.windowStart);
+    return { allowed: false, remaining: 0, resetIn };
+  }
+  
+  userLimit.count++;
+  return { 
+    allowed: true, 
+    remaining: RATE_LIMIT_MAX_REQUESTS - userLimit.count,
+    resetIn: RATE_LIMIT_WINDOW_MS - (now - userLimit.windowStart)
+  };
+}
+
 const weatherRequestSchema = z.object({
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180)
@@ -43,6 +73,24 @@ serve(async (req) => {
       });
     }
 
+    // Rate limiting check
+    const rateLimit = checkRateLimit(userData.user.id);
+    const rateLimitHeaders = {
+      'X-RateLimit-Limit': RATE_LIMIT_MAX_REQUESTS.toString(),
+      'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+      'X-RateLimit-Reset': Math.ceil(rateLimit.resetIn / 1000).toString(),
+    };
+
+    if (!rateLimit.allowed) {
+      return new Response(JSON.stringify({ 
+        error: 'Rate limit exceeded',
+        retryAfter: Math.ceil(rateLimit.resetIn / 1000)
+      }), {
+        status: 429,
+        headers: { ...corsHeaders, ...rateLimitHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     // Validate input
     const body = await req.json();
     const validation = weatherRequestSchema.safeParse(body);
@@ -51,7 +99,7 @@ serve(async (req) => {
       console.error('Validation error:', validation.error.errors);
       return new Response(JSON.stringify({ error: 'Invalid coordinates' }), {
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, ...rateLimitHeaders, 'Content-Type': 'application/json' }
       });
     }
 
@@ -62,7 +110,7 @@ serve(async (req) => {
       console.error('OPENWEATHER_API_KEY not configured');
       return new Response(JSON.stringify({ error: 'Weather service not configured' }), {
         status: 503,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, ...rateLimitHeaders, 'Content-Type': 'application/json' }
       });
     }
 
@@ -74,13 +122,13 @@ serve(async (req) => {
       console.error(`Weather API error: ${response.status}`);
       return new Response(JSON.stringify({ error: 'Failed to fetch weather data' }), {
         status: 502,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, ...rateLimitHeaders, 'Content-Type': 'application/json' }
       });
     }
 
     const data = await response.json();
     return new Response(JSON.stringify(data), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      headers: { ...corsHeaders, ...rateLimitHeaders, 'Content-Type': 'application/json' }
     });
 
   } catch (error) {
