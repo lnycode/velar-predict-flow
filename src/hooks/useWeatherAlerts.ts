@@ -199,29 +199,29 @@ export function useWeatherAlerts(): UseWeatherAlertsReturn {
         }
       }
 
-      // Fetch weather data
-      const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${import.meta.env.VITE_OPENWEATHER_API_KEY || 'demo'}&units=metric`
-      );
+      // Fetch weather data via Edge Function (secure proxy)
+      const { data: weatherResponse, error: weatherError } = await supabase.functions.invoke('get-weather', {
+        body: { lat, lng },
+      });
 
       let weather: WeatherData;
       
-      if (response.ok) {
-        const data = await response.json();
+      if (!weatherError && weatherResponse) {
         weather = {
-          temperature: Math.round(data.main.temp),
-          humidity: data.main.humidity,
-          pressure: data.main.pressure,
+          temperature: Math.round(weatherResponse.main.temp),
+          humidity: weatherResponse.main.humidity,
+          pressure: weatherResponse.main.pressure,
           pressureChange: previousPressureRef.current 
-            ? data.main.pressure - previousPressureRef.current 
+            ? weatherResponse.main.pressure - previousPressureRef.current 
             : 0,
-          conditions: data.weather[0]?.main || 'Clear',
-          uvIndex: data.uvi || 0,
-          windSpeed: Math.round((data.wind?.speed || 0) * 3.6), // Convert m/s to km/h
+          conditions: weatherResponse.weather[0]?.main || 'Clear',
+          uvIndex: weatherResponse.uvi || 0,
+          windSpeed: Math.round((weatherResponse.wind?.speed || 0) * 3.6), // Convert m/s to km/h
           timestamp: new Date(),
         };
       } else {
         // Fallback mock data for demo
+        console.warn('Weather fetch failed, using fallback data:', weatherError);
         weather = {
           temperature: 18 + Math.random() * 10,
           humidity: 60 + Math.random() * 30,
