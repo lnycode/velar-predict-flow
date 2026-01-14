@@ -218,6 +218,19 @@ export interface EmailNotification {
 }
 
 // ============================================================
+// Geocoding Domain
+// ============================================================
+
+export interface GeocodingResult {
+  name: string;
+  lat: number;
+  lng: number;
+  country: string;
+  state: string | null;
+  displayName: string;
+}
+
+// ============================================================
 // Common Value Objects
 // ============================================================
 

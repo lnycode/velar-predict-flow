@@ -34,3 +34,6 @@ export {
   getPredictionAccuracy,
   getCurrentRiskLevel,
 } from './predictionService';
+
+// Geocoding Services
+export { geocodeLocation } from './geocodingService';

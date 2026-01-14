@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,9 +11,11 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { profileSchema } from '@/lib/validations';
+import { geocodeLocation } from '@/domain/services/geocodingService';
+import type { GeocodingResult } from '@/domain/types';
 import { 
   User, MapPin, Zap, Brain, Heart, CheckCircle, 
-  ArrowRight, ArrowLeft, Star, AlertTriangle 
+  ArrowRight, ArrowLeft, Star, AlertTriangle, Loader2, Search
 } from 'lucide-react';
 
 interface OnboardingFlowProps {
@@ -52,6 +54,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
     
     // Step 2: Location & Preferences
     locationName: '',
+    locationLat: null as number | null,
+    locationLng: null as number | null,
+    selectedLocationDisplay: '',
     timezone: 'Europe/Berlin',
     weatherSensitivity: 'medium',
     
@@ -64,6 +69,11 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
     currentMedications: '',
     frequencyPerMonth: 0,
   });
+
+  // Geocoding state
+  const [isGeocoding, setIsGeocoding] = useState(false);
+  const [geocodingResults, setGeocodingResults] = useState<GeocodingResult[]>([]);
+  const [showLocationResults, setShowLocationResults] = useState(false);
 
   const progress = (currentStep / steps.length) * 100;
 
@@ -79,6 +89,56 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
+  };
+
+  // Handle geocoding search
+  const handleLocationSearch = useCallback(async () => {
+    const query = formData.locationName.trim();
+    if (!query || query.length < 2) {
+      setGeocodingResults([]);
+      setShowLocationResults(false);
+      return;
+    }
+
+    setIsGeocoding(true);
+    setShowLocationResults(true);
+    
+    const result = await geocodeLocation(query);
+    
+    if (result.success === true) {
+      setGeocodingResults(result.data);
+      if (result.data.length === 0) {
+        toast({
+          title: 'Kein Ort gefunden',
+          description: 'Bitte versuchen Sie es mit einem anderen Ortsnamen oder fügen Sie das Land hinzu (z.B. "München, DE").',
+          variant: 'destructive',
+        });
+      }
+    } 
+    
+    if (result.success === false) {
+      toast({
+        title: 'Fehler bei der Standortsuche',
+        description: result.error.message,
+        variant: 'destructive',
+      });
+      setGeocodingResults([]);
+    }
+    
+    setIsGeocoding(false);
+  }, [formData.locationName, toast]);
+
+  // Handle location selection
+  const handleSelectLocation = (location: GeocodingResult) => {
+    setFormData(prev => ({
+      ...prev,
+      locationName: location.name,
+      locationLat: location.lat,
+      locationLng: location.lng,
+      selectedLocationDisplay: location.displayName,
+    }));
+    setShowLocationResults(false);
+    setGeocodingResults([]);
   };
 
   const handleTriggerToggle = (trigger: string) => {
@@ -128,7 +188,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
       await updateProfile({
         first_name: validatedData.firstName,
         last_name: validatedData.lastName || '',
-        location_name: validatedData.locationName,
+        location_name: formData.selectedLocationDisplay || validatedData.locationName,
+        location_lat: formData.locationLat,
+        location_lng: formData.locationLng,
         timezone: validatedData.timezone,
         weather_sensitivity: validatedData.weatherSensitivity,
         known_triggers: allTriggers.join(', '),
@@ -159,7 +221,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
       case 1:
         return formData.firstName.trim().length > 0;
       case 2:
-        return formData.locationName.trim().length > 0;
+        // Require confirmed coordinates from geocoding
+        return formData.locationLat !== null && formData.locationLng !== null;
       case 3:
         return formData.knownTriggers.length > 0 || formData.customTriggers.trim().length > 0;
       case 4:
@@ -219,15 +282,74 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
             </div>
             
             <div className="space-y-4">
+              {/* Location search with geocoding */}
               <div className="space-y-2">
                 <Label htmlFor="location">Stadt/Region</Label>
-                <Input
-                  id="location"
-                  value={formData.locationName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, locationName: e.target.value }))}
-                  placeholder="z.B. München, Bayern"
-                  required
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="location"
+                    value={formData.locationName}
+                    onChange={(e) => {
+                      setFormData(prev => ({ 
+                        ...prev, 
+                        locationName: e.target.value,
+                        // Clear coordinates when user edits the location
+                        locationLat: null,
+                        locationLng: null,
+                        selectedLocationDisplay: '',
+                      }));
+                    }}
+                    placeholder="z.B. München, Bayern"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleLocationSearch}
+                    disabled={isGeocoding || formData.locationName.trim().length < 2}
+                    variant="outline"
+                  >
+                    {isGeocoding ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Search className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
+                
+                {/* Location suggestions dropdown */}
+                {showLocationResults && geocodingResults.length > 0 && (
+                  <div className="border rounded-lg bg-card shadow-lg overflow-hidden">
+                    {geocodingResults.map((location, index) => (
+                      <button
+                        key={`${location.lat}-${location.lng}-${index}`}
+                        type="button"
+                        className="w-full px-4 py-3 text-left hover:bg-accent transition-colors flex items-center gap-3 border-b last:border-b-0"
+                        onClick={() => handleSelectLocation(location)}
+                      >
+                        <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                        <span className="text-sm">{location.displayName}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Selected location confirmation */}
+                {formData.selectedLocationDisplay && (
+                  <div className="flex items-center gap-2 p-3 bg-success/10 rounded-lg border border-success/20">
+                    <CheckCircle className="w-5 h-5 text-success flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-success">Standort bestätigt</p>
+                      <p className="text-sm text-muted-foreground">{formData.selectedLocationDisplay}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Helper text */}
+                {!formData.selectedLocationDisplay && (
+                  <p className="text-xs text-muted-foreground">
+                    Geben Sie Ihren Standort ein und klicken Sie auf Suchen, um die Koordinaten zu bestätigen.
+                  </p>
+                )}
               </div>
               
               <div className="space-y-2">
