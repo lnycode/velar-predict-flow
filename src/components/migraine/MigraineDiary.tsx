@@ -1,10 +1,10 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
@@ -17,10 +17,7 @@ interface MigraineDiaryProps {
   onEntryAdded?: () => void;
 }
 
-const commonTriggers = [
-  'Stress', 'Schlafmangel', 'Wetter', 'Hormone', 'Alkohol', 
-  'Koffein', 'Licht', 'Lärm', 'Menstruation', 'Hunger'
-];
+const triggerKeys = ['stress', 'sleepDeprivation', 'weather', 'hormones', 'alcohol', 'caffeine', 'light', 'noise', 'menstruation', 'hunger'];
 
 const medications = [
   'Ibuprofen', 'Sumatriptan', 'Paracetamol', 'Aspirin', 
@@ -28,9 +25,15 @@ const medications = [
 ];
 
 export const MigraineDiary: React.FC<MigraineDiaryProps> = ({ onEntryAdded }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const commonTriggers = triggerKeys.map(key => ({
+    key,
+    label: t(`triggers.${key}`)
+  }));
 
   const [formData, setFormData] = useState({
     severity: [5],
@@ -89,7 +92,6 @@ export const MigraineDiary: React.FC<MigraineDiaryProps> = ({ onEntryAdded }) =>
 
     setIsSubmitting(true);
     try {
-      // Validate form data before submission
       const validationResult = migraineDiarySchema.safeParse({
         severity: formData.severity[0],
         intensity: formData.intensity[0],
@@ -106,7 +108,7 @@ export const MigraineDiary: React.FC<MigraineDiaryProps> = ({ onEntryAdded }) =>
       if (!validationResult.success) {
         const firstError = validationResult.error.errors[0];
         toast({
-          title: 'Validierungsfehler',
+          title: t('onboarding.validationError'),
           description: firstError.message,
           variant: 'destructive',
         });
@@ -134,11 +136,10 @@ export const MigraineDiary: React.FC<MigraineDiaryProps> = ({ onEntryAdded }) =>
       if (error) throw error;
 
       toast({
-        title: 'Eintrag gespeichert',
-        description: 'Ihr Migräne-Tagebucheintrag wurde erfolgreich hinzugefügt.',
+        title: t('diary.entrySaved'),
+        description: t('diary.entrySavedDesc'),
       });
 
-      // Reset form
       setFormData({
         severity: [5],
         intensity: [5],
@@ -156,8 +157,8 @@ export const MigraineDiary: React.FC<MigraineDiaryProps> = ({ onEntryAdded }) =>
     } catch (error: any) {
       console.error('Diary entry save error:', error);
       toast({
-        title: 'Fehler',
-        description: 'Fehler beim Speichern des Eintrags. Bitte versuchen Sie es erneut.',
+        title: t('common.error'),
+        description: t('diary.saveError'),
         variant: 'destructive',
       });
     } finally {
@@ -170,112 +171,69 @@ export const MigraineDiary: React.FC<MigraineDiaryProps> = ({ onEntryAdded }) =>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calendar className="w-5 h-5 text-primary" />
-          Migräne-Tagebuch Eintrag
+          {t('diary.title')}
         </CardTitle>
         <CardDescription>
-          Dokumentieren Sie Ihre Migräne-Episode für bessere Vorhersagen
+          {t('diary.description')}
         </CardDescription>
       </CardHeader>
       
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Severity & Intensity */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label className="text-sm font-medium">
-                Schweregrad (1-10): {formData.severity[0]}
+                {t('diary.severity')}: {formData.severity[0]}
               </Label>
-              <Slider
-                value={formData.severity}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, severity: value }))}
-                max={10}
-                min={1}
-                step={1}
-                className="w-full"
-              />
+              <Slider value={formData.severity} onValueChange={(value) => setFormData(prev => ({ ...prev, severity: value }))} max={10} min={1} step={1} className="w-full" />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Mild</span>
-                <span>Schwer</span>
+                <span>{t('diary.mild')}</span>
+                <span>{t('diary.severe')}</span>
               </div>
             </div>
             
             <div className="space-y-2">
               <Label className="text-sm font-medium">
-                Schmerzintensität (1-10): {formData.intensity[0]}
+                {t('diary.intensity')}: {formData.intensity[0]}
               </Label>
-              <Slider
-                value={formData.intensity}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, intensity: value }))}
-                max={10}
-                min={1}
-                step={1}
-                className="w-full"
-              />
+              <Slider value={formData.intensity} onValueChange={(value) => setFormData(prev => ({ ...prev, intensity: value }))} max={10} min={1} step={1} className="w-full" />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Gering</span>
-                <span>Stark</span>
+                <span>{t('diary.low')}</span>
+                <span>{t('diary.strong')}</span>
               </div>
             </div>
           </div>
 
-          {/* Duration & Location */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="duration" className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                Dauer (Stunden)
+                {t('diary.duration')}
               </Label>
-              <Input
-                id="duration"
-                type="number"
-                min="0"
-                step="0.5"
-                value={formData.duration}
-                onChange={(e) => setFormData(prev => ({ 
-                  ...prev, 
-                  duration: parseFloat(e.target.value) || 0 
-                }))}
-                placeholder="z.B. 4.5"
-              />
+              <Input id="duration" type="number" min="0" step="0.5" value={formData.duration} onChange={(e) => setFormData(prev => ({ ...prev, duration: parseFloat(e.target.value) || 0 }))} placeholder={t('diary.durationPlaceholder')} />
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="location" className="flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
-                Ort
+                {t('diary.location')}
               </Label>
-              <Input
-                id="location"
-                value={formData.location}
-                onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                placeholder="z.B. München, Büro"
-              />
+              <Input id="location" value={formData.location} onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))} placeholder={t('diary.locationPlaceholder')} />
             </div>
           </div>
 
-          {/* Triggers */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium">Mögliche Auslöser</Label>
+            <Label className="text-sm font-medium">{t('diary.possibleTriggers')}</Label>
             <div className="flex flex-wrap gap-2">
               {commonTriggers.map((trigger) => (
-                <Badge
-                  key={trigger}
-                  variant={formData.selectedTriggers.includes(trigger) ? "default" : "outline"}
-                  className="cursor-pointer hover:bg-primary/10 transition-colors"
-                  onClick={() => handleTriggerToggle(trigger)}
-                >
-                  {trigger}
+                <Badge key={trigger.key} variant={formData.selectedTriggers.includes(trigger.label) ? "default" : "outline"} className="cursor-pointer hover:bg-primary/10 transition-colors" onClick={() => handleTriggerToggle(trigger.label)}>
+                  {trigger.label}
                 </Badge>
               ))}
             </div>
             
             <div className="flex gap-2">
-              <Input
-                value={formData.customTrigger}
-                onChange={(e) => setFormData(prev => ({ ...prev, customTrigger: e.target.value }))}
-                placeholder="Eigener Auslöser..."
-                className="flex-1"
-              />
+              <Input value={formData.customTrigger} onChange={(e) => setFormData(prev => ({ ...prev, customTrigger: e.target.value }))} placeholder={t('diary.customTriggerPlaceholder')} className="flex-1" />
               <Button type="button" variant="outline" onClick={addCustomTrigger}>
                 <Plus className="w-4 h-4" />
               </Button>
@@ -286,39 +244,25 @@ export const MigraineDiary: React.FC<MigraineDiaryProps> = ({ onEntryAdded }) =>
                 {formData.selectedTriggers.map((trigger, index) => (
                   <Badge key={index} variant="secondary" className="flex items-center gap-1">
                     {trigger}
-                    <X 
-                      className="w-3 h-3 cursor-pointer" 
-                      onClick={() => handleTriggerToggle(trigger)}
-                    />
+                    <X className="w-3 h-3 cursor-pointer" onClick={() => handleTriggerToggle(trigger)} />
                   </Badge>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Medications */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium">Eingenommene Medikamente</Label>
+            <Label className="text-sm font-medium">{t('diary.medicationsTaken')}</Label>
             <div className="flex flex-wrap gap-2">
               {medications.map((medication) => (
-                <Badge
-                  key={medication}
-                  variant={formData.selectedMedications.includes(medication) ? "default" : "outline"}
-                  className="cursor-pointer hover:bg-primary/10 transition-colors"
-                  onClick={() => handleMedicationToggle(medication)}
-                >
+                <Badge key={medication} variant={formData.selectedMedications.includes(medication) ? "default" : "outline"} className="cursor-pointer hover:bg-primary/10 transition-colors" onClick={() => handleMedicationToggle(medication)}>
                   {medication}
                 </Badge>
               ))}
             </div>
             
             <div className="flex gap-2">
-              <Input
-                value={formData.customMedication}
-                onChange={(e) => setFormData(prev => ({ ...prev, customMedication: e.target.value }))}
-                placeholder="Anderes Medikament..."
-                className="flex-1"
-              />
+              <Input value={formData.customMedication} onChange={(e) => setFormData(prev => ({ ...prev, customMedication: e.target.value }))} placeholder={t('diary.customMedicationPlaceholder')} className="flex-1" />
               <Button type="button" variant="outline" onClick={addCustomMedication}>
                 <Plus className="w-4 h-4" />
               </Button>
@@ -330,53 +274,32 @@ export const MigraineDiary: React.FC<MigraineDiaryProps> = ({ onEntryAdded }) =>
                   {formData.selectedMedications.map((medication, index) => (
                     <Badge key={index} variant="secondary" className="flex items-center gap-1">
                       {medication}
-                      <X 
-                        className="w-3 h-3 cursor-pointer" 
-                        onClick={() => handleMedicationToggle(medication)}
-                      />
+                      <X className="w-3 h-3 cursor-pointer" onClick={() => handleMedicationToggle(medication)} />
                     </Badge>
                   ))}
                 </div>
                 
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">
-                    Wirksamkeit (1-10): {formData.effectiveness[0]}
+                    {t('diary.effectiveness')}: {formData.effectiveness[0]}
                   </Label>
-                  <Slider
-                    value={formData.effectiveness}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, effectiveness: value }))}
-                    max={10}
-                    min={1}
-                    step={1}
-                    className="w-full"
-                  />
+                  <Slider value={formData.effectiveness} onValueChange={(value) => setFormData(prev => ({ ...prev, effectiveness: value }))} max={10} min={1} step={1} className="w-full" />
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Unwirksam</span>
-                    <span>Sehr wirksam</span>
+                    <span>{t('diary.ineffective')}</span>
+                    <span>{t('diary.veryEffective')}</span>
                   </div>
                 </div>
               </>
             )}
           </div>
 
-          {/* Notes */}
           <div className="space-y-2">
-            <Label htmlFor="note">Zusätzliche Notizen</Label>
-            <Textarea
-              id="note"
-              value={formData.note}
-              onChange={(e) => setFormData(prev => ({ ...prev, note: e.target.value }))}
-              placeholder="Weitere Details zu Symptomen, Begleiterscheinungen, etc."
-              rows={3}
-            />
+            <Label htmlFor="note">{t('diary.additionalNotes')}</Label>
+            <Textarea id="note" value={formData.note} onChange={(e) => setFormData(prev => ({ ...prev, note: e.target.value }))} placeholder={t('diary.notesPlaceholder')} rows={3} />
           </div>
 
-          <Button 
-            type="submit" 
-            disabled={isSubmitting}
-            className="w-full velar-button-primary"
-          >
-            {isSubmitting ? 'Speichern...' : 'Eintrag speichern'}
+          <Button type="submit" disabled={isSubmitting} className="w-full velar-button-primary">
+            {isSubmitting ? t('diary.saving') : t('diary.saveEntry')}
           </Button>
         </form>
       </CardContent>
