@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
-import { Button } from "@/components/ui/button";
+import { LanguageSelector } from "./LanguageSelector";
 import { Menu } from "lucide-react";
 
 interface AppLayoutProps {
@@ -34,6 +34,9 @@ export function AppLayout({ children }: AppLayoutProps) {
               </div>
               
               <div className="flex items-center gap-3">
+                {/* Language Selector */}
+                <LanguageSelector />
+                
                 {/* Status Indicator */}
                 <div className="hidden md:flex items-center gap-2 bg-gradient-primary/20 text-cyan-400 px-4 py-2 rounded-full border border-cyan-400/30 backdrop-blur-sm">
                   <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse-glow" />
