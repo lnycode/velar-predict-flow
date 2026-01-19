@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, memo } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format, subDays, subMonths, isAfter, parseISO } from "date-fns";
 
 function HistoryPageComponent() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterPeriod, setFilterPeriod] = useState("all");
@@ -48,20 +50,20 @@ function HistoryPageComponent() {
       const episodes: MigrainEpisode[] = (entries || []).map((entry, index) => {
         const createdAt = new Date(entry.created_at || '');
         const severity = entry.severity || entry.intensity || 5;
-        let severityText = 'Moderate';
-        if (severity <= 3) severityText = 'Mild';
-        else if (severity >= 7) severityText = 'Severe';
+        let severityText = t('common.moderate');
+        if (severity <= 3) severityText = t('common.mild');
+        else if (severity >= 7) severityText = t('common.severe');
 
         const triggers: string[] = [];
-        if (entry.trigger_detected) triggers.push('Trigger detected');
+        if (entry.trigger_detected) triggers.push(t('triggers.triggerDetected'));
         if (entry.note) {
           const noteLower = entry.note.toLowerCase();
-          if (noteLower.includes('stress')) triggers.push('Stress');
-          if (noteLower.includes('sleep') || noteLower.includes('müde') || noteLower.includes('tired')) triggers.push('Sleep');
-          if (noteLower.includes('weather') || noteLower.includes('wetter')) triggers.push('Weather');
-          if (noteLower.includes('food') || noteLower.includes('essen')) triggers.push('Food');
+          if (noteLower.includes('stress')) triggers.push(t('triggers.stress'));
+          if (noteLower.includes('sleep') || noteLower.includes('müde') || noteLower.includes('tired')) triggers.push(t('triggers.sleep'));
+          if (noteLower.includes('weather') || noteLower.includes('wetter')) triggers.push(t('triggers.weather'));
+          if (noteLower.includes('food') || noteLower.includes('essen')) triggers.push(t('triggers.food'));
         }
-        if (entry.pressure) triggers.push('Pressure change');
+        if (entry.pressure) triggers.push(t('triggers.pressureChange'));
 
         return {
           id: index + 1,
@@ -69,9 +71,9 @@ function HistoryPageComponent() {
           time: format(createdAt, 'HH:mm'),
           severity: severityText,
           duration: `${entry.duration || 2}h`,
-          triggers: triggers.length > 0 ? triggers : ['Unknown'],
-          location: entry.location || 'Not specified',
-          medication: entry.medication_taken || 'None',
+          triggers: triggers.length > 0 ? triggers : [t('common.unknown')],
+          location: entry.location || t('common.unknown'),
+          medication: entry.medication_taken || t('common.unknown'),
           weatherConditions: {
             temp: entry.temperature || 20,
             humidity: entry.humidity || 50,
@@ -88,7 +90,10 @@ function HistoryPageComponent() {
         : 0;
       
       const weatherRelated = episodes.length > 0
-        ? Math.round(episodes.filter(e => e.triggers.includes('Weather') || e.triggers.includes('Pressure change')).length / episodes.length * 100)
+        ? Math.round(episodes.filter(e => 
+            e.triggers.includes(t('triggers.weather')) || 
+            e.triggers.includes(t('triggers.pressureChange'))
+          ).length / episodes.length * 100)
         : 0;
 
       const now = new Date();
@@ -116,11 +121,11 @@ function HistoryPageComponent() {
 
     } catch (error) {
       console.error('Error loading migraine history:', error);
-      toast.error('Failed to load migraine history');
+      toast.error(t('history.failedToLoadHistory'));
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [user, t]);
 
   useEffect(() => {
     if (user) {
@@ -171,7 +176,7 @@ function HistoryPageComponent() {
   const handleExportPDF = useCallback(() => {
     try {
       if (filteredEpisodes.length === 0) {
-        toast.error('No episodes to export for the selected period');
+        toast.error(t('history.noEpisodesToExport'));
         return;
       }
 
@@ -180,18 +185,18 @@ function HistoryPageComponent() {
         dateOfBirth: dateOfBirth || "Not Provided",
         physicianName: physicianName || undefined,
       });
-      toast.success("Healthcare Provider Report generated successfully!");
+      toast.success(t('history.reportGenerated'));
       setReportDialogOpen(false);
     } catch (error) {
-      toast.error("Failed to generate PDF report");
+      toast.error(t('history.failedToGenerateReport'));
       console.error(error);
     }
-  }, [filteredEpisodes, reportPeriod, patientName, dateOfBirth, physicianName]);
+  }, [filteredEpisodes, reportPeriod, patientName, dateOfBirth, physicianName, t]);
 
   const handleExportCSV = useCallback(() => {
     try {
       if (filteredEpisodes.length === 0) {
-        toast.error('No episodes to export');
+        toast.error(t('history.noEpisodesToExport'));
         return;
       }
 
@@ -219,21 +224,23 @@ function HistoryPageComponent() {
       a.click();
       window.URL.revokeObjectURL(url);
       
-      toast.success("CSV exported successfully!");
+      toast.success(t('history.csvExported'));
     } catch (error) {
-      toast.error("Failed to export CSV");
+      toast.error(t('history.failedToExportCSV'));
       console.error(error);
     }
-  }, [filteredEpisodes]);
+  }, [filteredEpisodes, t]);
 
   const getSeverityColor = useCallback((severity: string) => {
-    switch (severity.toLowerCase()) {
-      case 'mild': return 'bg-success/20 text-success';
-      case 'moderate': return 'bg-warning/20 text-warning';
-      case 'severe': return 'bg-destructive/20 text-destructive';
-      default: return 'bg-muted/20 text-muted-foreground';
-    }
-  }, []);
+    const lowerSeverity = severity.toLowerCase();
+    if (lowerSeverity === 'mild' || lowerSeverity === t('common.mild').toLowerCase()) 
+      return 'bg-success/20 text-success';
+    if (lowerSeverity === 'moderate' || lowerSeverity === t('common.moderate').toLowerCase()) 
+      return 'bg-warning/20 text-warning';
+    if (lowerSeverity === 'severe' || lowerSeverity === t('common.severe').toLowerCase()) 
+      return 'bg-destructive/20 text-destructive';
+    return 'bg-muted/20 text-muted-foreground';
+  }, [t]);
 
   if (isLoading) {
     return (
@@ -248,32 +255,31 @@ function HistoryPageComponent() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Migraine History</h1>
-          <p className="text-muted-foreground">Comprehensive record of your migraine episodes</p>
+          <h1 className="text-2xl font-bold text-foreground">{t('history.title')}</h1>
+          <p className="text-muted-foreground">{t('history.subtitle')}</p>
         </div>
         
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={handleExportCSV}>
             <Download className="w-4 h-4 mr-2" />
-            Export CSV
+            {t('history.exportCSV')}
           </Button>
           
           <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
             <DialogTrigger asChild>
               <Button className="velar-button-primary" size="sm">
                 <Stethoscope className="w-4 h-4 mr-2" />
-                Healthcare Provider Report
+                {t('history.healthcareReport')}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <FileText className="w-5 h-5 text-primary" />
-                  Generate Healthcare Provider Report
+                  {t('history.generateReport')}
                 </DialogTitle>
                 <DialogDescription>
-                  Create a professional PDF report to share with your healthcare provider. 
-                  This report includes pattern analysis, trigger correlations, and treatment effectiveness data.
+                  {t('history.reportDescription')}
                 </DialogDescription>
               </DialogHeader>
               
@@ -281,11 +287,11 @@ function HistoryPageComponent() {
                 <div className="grid gap-2">
                   <Label htmlFor="patientName" className="flex items-center gap-2">
                     <User className="w-4 h-4" />
-                    Patient Name
+                    {t('history.patientName')}
                   </Label>
                   <Input
                     id="patientName"
-                    placeholder="Enter your full name"
+                    placeholder={t('history.enterFullName')}
                     value={patientName}
                     onChange={(e) => setPatientName(e.target.value)}
                   />
@@ -294,7 +300,7 @@ function HistoryPageComponent() {
                 <div className="grid gap-2">
                   <Label htmlFor="dob" className="flex items-center gap-2">
                     <CalendarDays className="w-4 h-4" />
-                    Date of Birth
+                    {t('history.dateOfBirth')}
                   </Label>
                   <Input
                     id="dob"
@@ -307,7 +313,7 @@ function HistoryPageComponent() {
                 <div className="grid gap-2">
                   <Label htmlFor="physician" className="flex items-center gap-2">
                     <Stethoscope className="w-4 h-4" />
-                    Attending Physician (Optional)
+                    {t('history.attendingPhysician')}
                   </Label>
                   <Input
                     id="physician"
@@ -318,42 +324,42 @@ function HistoryPageComponent() {
                 </div>
                 
                 <div className="grid gap-2">
-                  <Label htmlFor="period">Report Period</Label>
+                  <Label htmlFor="period">{t('history.reportPeriod')}</Label>
                   <Select value={reportPeriod} onValueChange={setReportPeriod}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select period" />
+                      <SelectValue placeholder={t('history.selectPeriod')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="30">Last 30 days</SelectItem>
-                      <SelectItem value="60">Last 60 days</SelectItem>
-                      <SelectItem value="90">Last 90 days</SelectItem>
-                      <SelectItem value="180">Last 6 months</SelectItem>
-                      <SelectItem value="365">Last year</SelectItem>
+                      <SelectItem value="30">{t('history.last30Days')}</SelectItem>
+                      <SelectItem value="60">{t('history.last60Days')}</SelectItem>
+                      <SelectItem value="90">{t('history.last90Days')}</SelectItem>
+                      <SelectItem value="180">{t('history.last6Months')}</SelectItem>
+                      <SelectItem value="365">{t('history.lastYear')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 
                 <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
-                  <h4 className="font-medium text-sm text-primary mb-1">Report Contents</h4>
+                  <h4 className="font-medium text-sm text-primary mb-1">{t('history.reportContents')}</h4>
                   <ul className="text-xs text-muted-foreground space-y-1">
-                    <li>• Executive summary with key metrics</li>
-                    <li>• Monthly pattern analysis trends</li>
-                    <li>• Trigger correlation analysis</li>
-                    <li>• Treatment effectiveness data</li>
-                    <li>• Weather & environmental correlations</li>
-                    <li>• Detailed episode log</li>
-                    <li>• Clinical observations & recommendations</li>
+                    <li>• {t('history.executiveSummary')}</li>
+                    <li>• {t('history.monthlyPatterns')}</li>
+                    <li>• {t('history.triggerCorrelation')}</li>
+                    <li>• {t('history.treatmentEffectiveness')}</li>
+                    <li>• {t('history.weatherCorrelations')}</li>
+                    <li>• {t('history.detailedLog')}</li>
+                    <li>• {t('history.clinicalObservations')}</li>
                   </ul>
                 </div>
               </div>
               
               <DialogFooter>
                 <Button variant="outline" onClick={() => setReportDialogOpen(false)}>
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button onClick={handleExportPDF} className="velar-button-primary">
                   <FileText className="w-4 h-4 mr-2" />
-                  Generate Report
+                  {t('history.generateReportBtn')}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -366,7 +372,7 @@ function HistoryPageComponent() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Filter className="w-5 h-5 text-primary" />
-            Filters & Search
+            {t('history.filtersSearch')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -374,7 +380,7 @@ function HistoryPageComponent() {
             <div className="relative">
               <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search episodes..."
+                placeholder={t('history.searchEpisodes')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 bg-background border-border/50"
@@ -383,30 +389,30 @@ function HistoryPageComponent() {
             
             <Select value={filterPeriod} onValueChange={setFilterPeriod}>
               <SelectTrigger className="bg-background border-border/50">
-                <SelectValue placeholder="Time period" />
+                <SelectValue placeholder={t('history.timePeriod')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All time</SelectItem>
-                <SelectItem value="30days">Last 30 days</SelectItem>
-                <SelectItem value="90days">Last 90 days</SelectItem>
-                <SelectItem value="year">This year</SelectItem>
+                <SelectItem value="all">{t('history.allTime')}</SelectItem>
+                <SelectItem value="30days">{t('history.last30Days')}</SelectItem>
+                <SelectItem value="90days">{t('history.last90Days')}</SelectItem>
+                <SelectItem value="year">{t('history.thisYear')}</SelectItem>
               </SelectContent>
             </Select>
             
             <Select value={filterSeverity} onValueChange={setFilterSeverity}>
               <SelectTrigger className="bg-background border-border/50">
-                <SelectValue placeholder="Severity" />
+                <SelectValue placeholder={t('history.severity')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All severities</SelectItem>
-                <SelectItem value="mild">Mild</SelectItem>
-                <SelectItem value="moderate">Moderate</SelectItem>
-                <SelectItem value="severe">Severe</SelectItem>
+                <SelectItem value="all">{t('history.allSeverities')}</SelectItem>
+                <SelectItem value="mild">{t('common.mild')}</SelectItem>
+                <SelectItem value="moderate">{t('common.moderate')}</SelectItem>
+                <SelectItem value="severe">{t('common.severe')}</SelectItem>
               </SelectContent>
             </Select>
             
             <div className="text-sm text-muted-foreground flex items-center">
-              Showing {filteredEpisodes.length} of {migrainHistory.length} episodes
+              {t('history.showingEpisodes', { filtered: filteredEpisodes.length, total: migrainHistory.length })}
             </div>
           </div>
         </CardContent>
@@ -417,19 +423,19 @@ function HistoryPageComponent() {
         <Card className="velar-card border-border/50">
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-primary">{stats.totalEpisodes}</div>
-            <div className="text-sm text-muted-foreground">Total Episodes</div>
+            <div className="text-sm text-muted-foreground">{t('history.totalEpisodes')}</div>
           </CardContent>
         </Card>
         <Card className="velar-card border-border/50">
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-warning">{stats.avgDuration}h</div>
-            <div className="text-sm text-muted-foreground">Avg Duration</div>
+            <div className="text-sm text-muted-foreground">{t('history.avgDuration')}</div>
           </CardContent>
         </Card>
         <Card className="velar-card border-border/50">
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-success">{stats.weatherRelated}%</div>
-            <div className="text-sm text-muted-foreground">Weather Related</div>
+            <div className="text-sm text-muted-foreground">{t('history.weatherRelated')}</div>
           </CardContent>
         </Card>
         <Card className="velar-card border-border/50">
@@ -437,7 +443,7 @@ function HistoryPageComponent() {
             <div className={`text-2xl font-bold ${stats.monthlyTrend <= 0 ? 'text-success' : 'text-destructive'}`}>
               {stats.monthlyTrend > 0 ? '+' : ''}{stats.monthlyTrend}%
             </div>
-            <div className="text-sm text-muted-foreground">Trend (30d)</div>
+            <div className="text-sm text-muted-foreground">{t('history.trend30d')}</div>
           </CardContent>
         </Card>
       </div>
@@ -445,20 +451,20 @@ function HistoryPageComponent() {
       {/* History Table */}
       <Card className="velar-card border-border/50">
         <CardHeader>
-          <CardTitle>Episode History</CardTitle>
-          <CardDescription>Detailed record of all migraine episodes</CardDescription>
+          <CardTitle>{t('history.episodeHistory')}</CardTitle>
+          <CardDescription>{t('history.detailedRecord')}</CardDescription>
         </CardHeader>
         <CardContent>
           {filteredEpisodes.length === 0 ? (
             <div className="text-center py-12">
               <Calendar className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                {migrainHistory.length === 0 ? 'No episodes recorded yet' : 'No episodes match your filters'}
+                {migrainHistory.length === 0 ? t('history.noEpisodesRecorded') : t('history.noMatchingFilters')}
               </h3>
               <p className="text-muted-foreground">
                 {migrainHistory.length === 0 
-                  ? 'Start logging your migraines to build your history.'
-                  : 'Try adjusting your search or filter criteria.'}
+                  ? t('history.startLogging')
+                  : t('history.adjustFilters')}
               </p>
             </div>
           ) : (
@@ -478,31 +484,31 @@ function HistoryPageComponent() {
                     </div>
                     
                     <div className="text-sm text-muted-foreground">
-                      Duration: {episode.duration}
+                      {t('history.duration')}: {episode.duration}
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-3">
                     <div>
-                      <div className="text-xs text-muted-foreground">Location</div>
+                      <div className="text-xs text-muted-foreground">{t('history.location')}</div>
                       <div className="text-sm font-medium text-foreground">{episode.location}</div>
                     </div>
                     <div>
-                      <div className="text-xs text-muted-foreground">Medication</div>
+                      <div className="text-xs text-muted-foreground">{t('history.medication')}</div>
                       <div className="text-sm font-medium text-foreground">{episode.medication}</div>
                     </div>
                     <div>
-                      <div className="text-xs text-muted-foreground">Temperature</div>
+                      <div className="text-xs text-muted-foreground">{t('history.temperature')}</div>
                       <div className="text-sm font-medium text-foreground">{episode.weatherConditions.temp}°C</div>
                     </div>
                     <div>
-                      <div className="text-xs text-muted-foreground">Pressure</div>
+                      <div className="text-xs text-muted-foreground">{t('history.pressure')}</div>
                       <div className="text-sm font-medium text-foreground">{episode.weatherConditions.pressure} hPa</div>
                     </div>
                   </div>
                   
                   <div>
-                    <div className="text-xs text-muted-foreground mb-1">Triggers</div>
+                    <div className="text-xs text-muted-foreground mb-1">{t('triggers.stress').split(' ')[0]}s</div>
                     <div className="flex flex-wrap gap-1">
                       {episode.triggers.map((trigger, index) => (
                         <Badge key={index} variant="outline" className="text-xs">

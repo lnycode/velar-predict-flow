@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,48 +28,49 @@ interface WeatherForecast {
   recommendation: string;
 }
 
-const getRiskColor = (risk: number) => {
-  if (risk <= 3) return 'text-success';
-  if (risk <= 6) return 'text-warning';
-  return 'text-destructive';
-};
-
-const getRiskBgColor = (risk: number) => {
-  if (risk <= 3) return 'bg-success/20 border-success/30';
-  if (risk <= 6) return 'bg-warning/20 border-warning/30';
-  return 'bg-destructive/20 border-destructive/30';
-};
-
-const getRiskLabel = (risk: number) => {
-  if (risk <= 3) return 'Niedrig';
-  if (risk <= 6) return 'Mittel';
-  return 'Hoch';
-};
-
-const getWeatherIcon = (conditions: string) => {
-  switch (conditions.toLowerCase()) {
-    case 'clear':
-    case 'sunny':
-      return Sun;
-    case 'clouds':
-    case 'cloudy':
-      return Cloud;
-    case 'rain':
-    case 'drizzle':
-      return CloudRain;
-    case 'snow':
-      return Snowflake;
-    default:
-      return Cloud;
-  }
-};
-
 const RiskForecastComponent: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const { user, session } = useAuth();
   const { toast } = useToast();
   const [forecasts, setForecasts] = useState<WeatherForecast[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+
+  const getRiskColor = (risk: number) => {
+    if (risk <= 3) return 'text-success';
+    if (risk <= 6) return 'text-warning';
+    return 'text-destructive';
+  };
+
+  const getRiskBgColor = (risk: number) => {
+    if (risk <= 3) return 'bg-success/20 border-success/30';
+    if (risk <= 6) return 'bg-warning/20 border-warning/30';
+    return 'bg-destructive/20 border-destructive/30';
+  };
+
+  const getRiskLabel = (risk: number) => {
+    if (risk <= 3) return t('common.low');
+    if (risk <= 6) return t('common.medium');
+    return t('common.high');
+  };
+
+  const getWeatherIcon = (conditions: string) => {
+    switch (conditions.toLowerCase()) {
+      case 'clear':
+      case 'sunny':
+        return Sun;
+      case 'clouds':
+      case 'cloudy':
+        return Cloud;
+      case 'rain':
+      case 'drizzle':
+        return CloudRain;
+      case 'snow':
+        return Snowflake;
+      default:
+        return Cloud;
+    }
+  };
 
   const fetchForecast = useCallback(async () => {
     if (!user || !session) return;
@@ -84,8 +86,8 @@ const RiskForecastComponent: React.FC = () => {
 
       if (!profile?.location_lat || !profile?.location_lng) {
         toast({
-          title: 'Standort erforderlich',
-          description: 'Bitte ergänzen Sie Ihren Standort in den Einstellungen für Wettervorhersagen.',
+          title: t('forecast.locationRequired'),
+          description: t('forecast.locationRequiredDesc'),
           variant: 'destructive',
         });
         return;
@@ -130,15 +132,24 @@ const RiskForecastComponent: React.FC = () => {
         adjustedRisk = Math.max(1, Math.min(10, adjustedRisk));
         
         const factors = [];
-        if (pressure < 1005) factors.push('Niedrigdruck-System');
-        if (humidity > 70) factors.push('Hohe Luftfeuchtigkeit');
-        if (temperature > 28) factors.push('Hohe Temperaturen');
-        if (weatherConditions === 'Rain') factors.push('Regenwetter');
+        if (pressure < 1005) factors.push(t('forecast.lowPressureSystem'));
+        if (humidity > 70) factors.push(t('forecast.highHumidity'));
+        if (temperature > 28) factors.push(t('forecast.highTemperatures'));
+        if (weatherConditions === 'Rain') factors.push(t('forecast.rainyWeather'));
         
         const triggers = profile.known_triggers?.split(', ') || [];
-        if (triggers.includes('Wetteränderungen') || triggers.includes('Wetter')) {
-          factors.push('Persönlicher Wetter-Trigger');
+        if (triggers.some(trigger => 
+          trigger.toLowerCase().includes('weather') || 
+          trigger.toLowerCase().includes('wetter')
+        )) {
+          factors.push(t('forecast.personalWeatherTrigger'));
         }
+
+        const recommendation = adjustedRisk > 6 
+          ? t('forecast.highRiskRecommendation')
+          : adjustedRisk > 3 
+          ? t('forecast.mediumRiskRecommendation')
+          : t('forecast.lowRiskRecommendation');
 
         mockForecasts.push({
           date: date.toISOString().split('T')[0],
@@ -152,12 +163,8 @@ const RiskForecastComponent: React.FC = () => {
             uvIndex: Math.floor(Math.random() * 11),
             windSpeed: Math.floor(Math.random() * 25)
           },
-          factors: factors.length > 0 ? factors : ['Normale Wetterbedingungen'],
-          recommendation: adjustedRisk > 6 
-            ? 'Vermeiden Sie bekannte Trigger und haben Sie Medikamente griffbereit'
-            : adjustedRisk > 3 
-            ? 'Achten Sie auf frühe Warnsignale und bleiben Sie hydratisiert'
-            : 'Entspannen Sie sich - niedrige Migräne-Wahrscheinlichkeit'
+          factors: factors.length > 0 ? factors : [t('forecast.normalConditions')],
+          recommendation
         });
       }
 
@@ -166,14 +173,14 @@ const RiskForecastComponent: React.FC = () => {
       
     } catch (error: any) {
       toast({
-        title: 'Fehler beim Laden der Vorhersage',
-        description: error.message || 'Unbekannter Fehler',
+        title: t('forecast.loadError'),
+        description: error.message || t('common.error'),
         variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
     }
-  }, [user, session, toast]);
+  }, [user, session, toast, t]);
 
   useEffect(() => {
     fetchForecast();
@@ -185,15 +192,16 @@ const RiskForecastComponent: React.FC = () => {
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
     
-    if (date.toDateString() === today.toDateString()) return 'Heute';
-    if (date.toDateString() === tomorrow.toDateString()) return 'Morgen';
+    if (date.toDateString() === today.toDateString()) return t('common.today');
+    if (date.toDateString() === tomorrow.toDateString()) return t('common.tomorrow');
     
-    return date.toLocaleDateString('de-DE', { 
+    const locale = i18n.language === 'de' ? 'de-DE' : 'en-US';
+    return date.toLocaleDateString(locale, { 
       weekday: 'short', 
       day: 'numeric', 
       month: 'short' 
     });
-  }, []);
+  }, [t, i18n.language]);
 
   return (
     <Card className="velar-card">
@@ -202,10 +210,10 @@ const RiskForecastComponent: React.FC = () => {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="w-5 h-5 text-primary" />
-              7-Tage Risikoschätzung
+              {t('forecast.title')}
             </CardTitle>
             <CardDescription>
-              Datenbasierte Schätzung basierend auf Wettermustern und persönlichen Triggern
+              {t('forecast.description')}
             </CardDescription>
           </div>
           
@@ -217,13 +225,13 @@ const RiskForecastComponent: React.FC = () => {
             className="flex items-center gap-2"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-            Aktualisieren
+            {t('common.refresh')}
           </Button>
         </div>
         
         {lastUpdate && (
           <p className="text-xs text-muted-foreground">
-            Letzte Aktualisierung: {lastUpdate.toLocaleString('de-DE')}
+            {t('forecast.lastUpdate')}: {lastUpdate.toLocaleString(i18n.language === 'de' ? 'de-DE' : 'en-US')}
           </p>
         )}
       </CardHeader>
@@ -274,7 +282,7 @@ const RiskForecastComponent: React.FC = () => {
                       </Badge>
                       
                       <div className="text-xs text-muted-foreground">
-                        {Math.round(forecast.confidence * 100)}% sicher
+                        {Math.round(forecast.confidence * 100)}% {t('forecast.confident')}
                       </div>
                     </div>
                   </div>
@@ -306,7 +314,7 @@ const RiskForecastComponent: React.FC = () => {
                   {forecast.factors.length > 0 && (
                     <div className="mb-2">
                       <div className="text-xs font-medium text-muted-foreground mb-1">
-                        Risikofaktoren:
+                        {t('forecast.riskFactors')}
                       </div>
                       <div className="flex flex-wrap gap-1">
                         {forecast.factors.map((factor, idx) => (
@@ -327,7 +335,7 @@ const RiskForecastComponent: React.FC = () => {
                     <div className="mt-2 flex items-center gap-2 text-destructive">
                       <AlertTriangle className="w-4 h-4" />
                       <span className="text-xs font-medium">
-                        Hohe Migräne-Wahrscheinlichkeit - Vorbeugende Maßnahmen empfohlen
+                        {t('forecast.highProbability')}
                       </span>
                     </div>
                   )}
@@ -339,8 +347,7 @@ const RiskForecastComponent: React.FC = () => {
         
         <div className="mt-4 p-3 bg-secondary/20 rounded-lg">
           <p className="text-xs text-muted-foreground">
-            <strong>Hinweis:</strong> Diese Risikoschätzung basiert auf historischen Mustern, Wetterdaten und Ihren Angaben. 
-            Sie dient als Entscheidungshilfe zur Vorbereitung und ersetzt keine ärztliche Beratung.
+            <strong>{t('common.beta')}:</strong> {t('forecast.disclaimer')}
           </p>
         </div>
       </CardContent>
