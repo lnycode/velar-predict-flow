@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 export default function SettingsPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -74,7 +76,7 @@ export default function SettingsPage() {
       }
     } catch (error) {
       console.error('Error loading profile:', error);
-      toast.error('Failed to load profile');
+      toast.error(t('settings.failedToLoadProfile'));
     } finally {
       setIsLoading(false);
     }
@@ -140,10 +142,10 @@ export default function SettingsPage() {
 
       if (error) throw error;
 
-      toast.success('Profile saved successfully!');
+      toast.success(t('settings.profileSavedSuccess'));
     } catch (error) {
       console.error('Error saving profile:', error);
-      toast.error('Failed to save profile');
+      toast.error(t('settings.failedToSaveProfile'));
     } finally {
       setIsSaving(false);
     }
@@ -184,10 +186,10 @@ export default function SettingsPage() {
       a.click();
       window.URL.revokeObjectURL(url);
 
-      toast.success('Data exported successfully!');
+      toast.success(t('settings.dataExportedSuccess'));
     } catch (error) {
       console.error('Error exporting data:', error);
-      toast.error('Failed to export data');
+      toast.error(t('settings.failedToExportData'));
     }
   };
 
@@ -202,8 +204,8 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6 animate-fade-in-up">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Settings</h1>
-        <p className="text-muted-foreground">Customize your Velar experience and preferences</p>
+        <h1 className="text-2xl font-bold text-foreground">{t('settings.title')}</h1>
+        <p className="text-muted-foreground">{t('settings.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -212,14 +214,14 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="w-5 h-5 text-primary" />
-              Profile Information
+              {t('settings.profileInfo')}
             </CardTitle>
-            <CardDescription>Update your personal information</CardDescription>
+            <CardDescription>{t('settings.updatePersonalInfo')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="firstName">First Name</Label>
+                <Label htmlFor="firstName">{t('settings.firstName')}</Label>
                 <Input 
                   id="firstName" 
                   value={firstName}
@@ -228,7 +230,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="lastName">Last Name</Label>
+                <Label htmlFor="lastName">{t('settings.lastName')}</Label>
                 <Input 
                   id="lastName" 
                   value={lastName}
@@ -239,7 +241,7 @@ export default function SettingsPage() {
             </div>
             
             <div>
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('settings.email')}</Label>
               <Input 
                 id="email" 
                 type="email" 
@@ -250,7 +252,7 @@ export default function SettingsPage() {
             </div>
             
             <div>
-              <Label htmlFor="timezone">Timezone</Label>
+              <Label htmlFor="timezone">{t('settings.timezone')}</Label>
               <Select value={timezone} onValueChange={setTimezone}>
                 <SelectTrigger className="bg-background border-border/50">
                   <SelectValue />
@@ -269,7 +271,7 @@ export default function SettingsPage() {
             
             <Button onClick={saveProfile} disabled={isSaving} className="w-full velar-button-primary">
               {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-              Save Profile
+              {t('settings.saveProfile')}
             </Button>
           </CardContent>
         </Card>
@@ -279,15 +281,15 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bell className="w-5 h-5 text-primary" />
-              Notifications
+              {t('settings.notifications')}
             </CardTitle>
-            <CardDescription>Configure your alert preferences</CardDescription>
+            <CardDescription>{t('settings.configureAlerts')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="weatherAlerts">Weather Alerts</Label>
-                <p className="text-sm text-muted-foreground">High-risk weather notifications</p>
+                <Label htmlFor="weatherAlerts">{t('settings.weatherAlerts')}</Label>
+                <p className="text-sm text-muted-foreground">{t('settings.highRiskWeatherNotifications')}</p>
               </div>
               <Switch 
                 id="weatherAlerts" 
@@ -298,8 +300,8 @@ export default function SettingsPage() {
             
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="emailNotifications">Email Notifications</Label>
-                <p className="text-sm text-muted-foreground">Receive email updates</p>
+                <Label htmlFor="emailNotifications">{t('settings.emailNotifications')}</Label>
+                <p className="text-sm text-muted-foreground">{t('settings.receiveEmailUpdates')}</p>
               </div>
               <Switch 
                 id="emailNotifications" 
@@ -310,8 +312,8 @@ export default function SettingsPage() {
             
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="aiPredictions">AI Predictions</Label>
-                <p className="text-sm text-muted-foreground">Enable AI-powered predictions</p>
+                <Label htmlFor="aiPredictions">{t('settings.aiPredictions')}</Label>
+                <p className="text-sm text-muted-foreground">{t('settings.enableAIPredictions')}</p>
               </div>
               <Switch 
                 id="aiPredictions" 
@@ -327,32 +329,32 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Shield className="w-5 h-5 text-primary" />
-              Medical Information
+              {t('settings.medicalInfo')}
             </CardTitle>
-            <CardDescription>Help improve AI accuracy</CardDescription>
+            <CardDescription>{t('settings.helpImproveAI')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="migrainType">Migraine Type</Label>
+              <Label htmlFor="migrainType">{t('settings.migraineType')}</Label>
               <Select value={migraineType} onValueChange={setMigraineType}>
                 <SelectTrigger className="bg-background border-border/50">
-                  <SelectValue placeholder="Select migraine type" />
+                  <SelectValue placeholder={t('settings.selectMigraineType')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="episodic">Episodic Migraine</SelectItem>
-                  <SelectItem value="chronic">Chronic Migraine</SelectItem>
-                  <SelectItem value="aura">Migraine with Aura</SelectItem>
-                  <SelectItem value="basilar">Basilar Migraine</SelectItem>
-                  <SelectItem value="vestibular">Vestibular Migraine</SelectItem>
+                  <SelectItem value="episodic">{t('migraineTypes.episodic')}</SelectItem>
+                  <SelectItem value="chronic">{t('migraineTypes.chronic')}</SelectItem>
+                  <SelectItem value="aura">{t('migraineTypes.withAura')}</SelectItem>
+                  <SelectItem value="basilar">{t('migraineTypes.basilar')}</SelectItem>
+                  <SelectItem value="vestibular">{t('migraineTypes.vestibular')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             <div>
-              <Label htmlFor="commonTriggers">Known Triggers</Label>
+              <Label htmlFor="commonTriggers">{t('settings.knownTriggers')}</Label>
               <Textarea 
                 id="commonTriggers" 
-                placeholder="e.g., stress, certain foods, weather changes..."
+                placeholder={t('settings.triggersPlaceholder')}
                 className="bg-background border-border/50"
                 value={knownTriggers}
                 onChange={(e) => setKnownTriggers(e.target.value)}
@@ -360,10 +362,10 @@ export default function SettingsPage() {
             </div>
             
             <div>
-              <Label htmlFor="medications">Current Medications</Label>
+              <Label htmlFor="medications">{t('settings.currentMedications')}</Label>
               <Textarea 
                 id="medications" 
-                placeholder="List preventive and rescue medications..."
+                placeholder={t('settings.medicationsPlaceholder')}
                 className="bg-background border-border/50"
                 value={currentMedications}
                 onChange={(e) => setCurrentMedications(e.target.value)}
@@ -371,23 +373,23 @@ export default function SettingsPage() {
             </div>
             
             <div>
-              <Label htmlFor="weatherSensitivity">Weather Sensitivity Level</Label>
+              <Label htmlFor="weatherSensitivity">{t('settings.weatherSensitivity')}</Label>
               <Select value={weatherSensitivity} onValueChange={setWeatherSensitivity}>
                 <SelectTrigger className="bg-background border-border/50">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="extreme">Extreme</SelectItem>
+                  <SelectItem value="low">{t('common.low')}</SelectItem>
+                  <SelectItem value="medium">{t('common.medium')}</SelectItem>
+                  <SelectItem value="high">{t('common.high')}</SelectItem>
+                  <SelectItem value="extreme">{t('common.extreme')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <Button onClick={saveProfile} disabled={isSaving} className="w-full velar-button-primary">
               {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-              Save Medical Info
+              {t('settings.saveMedicalInfo')}
             </Button>
           </CardContent>
         </Card>
@@ -397,21 +399,21 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Download className="w-5 h-5 text-primary" />
-              Data & Privacy
+              {t('settings.dataPrivacy')}
             </CardTitle>
-            <CardDescription>Manage your data and privacy settings</CardDescription>
+            <CardDescription>{t('settings.manageDataPrivacy')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="p-4 bg-secondary/20 rounded-lg">
-              <div className="text-sm text-muted-foreground mb-2">Your Data Summary</div>
+              <div className="text-sm text-muted-foreground mb-2">{t('settings.dataSummary')}</div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-lg font-bold text-primary">{totalEntries}</div>
-                  <div className="text-xs text-muted-foreground">Migraine Entries</div>
+                  <div className="text-xs text-muted-foreground">{t('settings.migraineEntries')}</div>
                 </div>
                 <div>
                   <div className="text-lg font-bold text-success">{accuracy}%</div>
-                  <div className="text-xs text-muted-foreground">Prediction Accuracy</div>
+                  <div className="text-xs text-muted-foreground">{t('settings.predictionAccuracy')}</div>
                 </div>
               </div>
             </div>
@@ -419,16 +421,16 @@ export default function SettingsPage() {
             <div className="space-y-2">
               <Button variant="outline" className="w-full" onClick={handleExportData}>
                 <Download className="w-4 h-4 mr-2" />
-                Export My Data
+                {t('settings.exportMyData')}
               </Button>
               
               <Button variant="outline" className="w-full">
-                View Privacy Policy
+                {t('settings.viewPrivacyPolicy')}
               </Button>
               
               <Button variant="destructive" className="w-full">
                 <Trash2 className="w-4 h-4 mr-2" />
-                Delete Account
+                {t('settings.deleteAccount')}
               </Button>
             </div>
           </CardContent>
@@ -438,29 +440,29 @@ export default function SettingsPage() {
       {/* App Information */}
       <Card className="velar-card border-border/50">
         <CardHeader>
-          <CardTitle>About Velar</CardTitle>
-          <CardDescription>Version information and support</CardDescription>
+          <CardTitle>{t('settings.aboutVelar')}</CardTitle>
+          <CardDescription>{t('settings.versionInfo')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
             <div>
               <div className="text-lg font-bold text-primary">v2.1.0</div>
-              <div className="text-sm text-muted-foreground">App Version</div>
+              <div className="text-sm text-muted-foreground">{t('settings.appVersion')}</div>
             </div>
             <div>
               <div className="text-lg font-bold text-warning">{accuracy}%</div>
-              <div className="text-sm text-muted-foreground">Your AI Accuracy</div>
+              <div className="text-sm text-muted-foreground">{t('settings.yourAIAccuracy')}</div>
             </div>
             <div>
               <div className="text-lg font-bold text-success">{totalEntries}</div>
-              <div className="text-sm text-muted-foreground">Your Entries</div>
+              <div className="text-sm text-muted-foreground">{t('settings.yourEntries')}</div>
             </div>
           </div>
           
           <div className="mt-6 flex justify-center gap-4">
-            <Button variant="outline" size="sm">Contact Support</Button>
-            <Button variant="outline" size="sm">Rate App</Button>
-            <Button variant="outline" size="sm">Release Notes</Button>
+            <Button variant="outline" size="sm">{t('settings.contactSupport')}</Button>
+            <Button variant="outline" size="sm">{t('settings.rateApp')}</Button>
+            <Button variant="outline" size="sm">{t('settings.releaseNotes')}</Button>
           </div>
         </CardContent>
       </Card>
