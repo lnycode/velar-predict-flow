@@ -375,9 +375,39 @@
     "detailedAnalyticsFeature": "Detaillierte Analytics",
     "upgrade": "Upgrade"
   },
-  "language": {
+"language": {
     "title": "Sprache",
     "english": "Englisch",
     "german": "Deutsch"
+  },
+  "analytics": {
+    "title": "Erweiterte Analysen",
+    "subtitle": "Tiefe Einblicke in Ihre Migräne-Muster und Auslöser",
+    "reductionThisMonth": "Reduktion diesen Monat",
+    "averageDuration": "Ø Dauer",
+    "weatherRelated": "Wetterbedingt",
+    "predictionAccuracy": "Vorhersagegenauigkeit",
+    "monthlyTrends": "Monatliche Trends",
+    "monthlyTrendsDesc": "Episoden und Schweregrad im Zeitverlauf",
+    "triggerAnalysis": "Trigger-Analyse",
+    "triggerAnalysisDesc": "Verteilung der Migräne-Auslöser",
+    "timePatternAnalysis": "Zeitmuster-Analyse",
+    "timePatternAnalysisDesc": "Wann Migränen typischerweise auftreten",
+    "aiPatternInsights": "KI-Muster-Einblicke",
+    "aiPatternInsightsDesc": "Personalisierte Beobachtungen basierend auf Ihren Daten",
+    "weatherSensitivity": "Wettersensitivität",
+    "weatherCorrelation": "{{percent}}% Ihrer Episoden korrelieren mit Wetteränderungen.",
+    "timePattern": "Zeitmuster",
+    "timePatternAdvice": "Die meisten Episoden treten nachmittags auf. Erwägen Sie präventive Maßnahmen während der Spitzenzeiten.",
+    "trend": "Trend",
+    "trendDecrease": "Episodenhäufigkeit verringerte sich um {{percent}}% diesen Monat.",
+    "trendNoData": "Erfassen Sie mehr Episoden, um Trends zu sehen.",
+    "triggers": {
+      "weatherChanges": "Wetteränderungen",
+      "stress": "Stress",
+      "sleepIssues": "Schlafprobleme",
+      "foodDrink": "Essen/Getränke",
+      "hormonal": "Hormonal"
+    }
   }
 }

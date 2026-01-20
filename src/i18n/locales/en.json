@@ -375,9 +375,39 @@
     "detailedAnalyticsFeature": "Detailed Analytics",
     "upgrade": "Upgrade"
   },
-  "language": {
+"language": {
     "title": "Language",
     "english": "English",
     "german": "German"
+  },
+  "analytics": {
+    "title": "Advanced Analytics",
+    "subtitle": "Deep insights into your migraine patterns and triggers",
+    "reductionThisMonth": "Reduction This Month",
+    "averageDuration": "Average Duration",
+    "weatherRelated": "Weather Related",
+    "predictionAccuracy": "Prediction Accuracy",
+    "monthlyTrends": "Monthly Trends",
+    "monthlyTrendsDesc": "Episodes and severity over time",
+    "triggerAnalysis": "Trigger Analysis",
+    "triggerAnalysisDesc": "Distribution of migraine triggers",
+    "timePatternAnalysis": "Time Pattern Analysis",
+    "timePatternAnalysisDesc": "When migraines typically occur",
+    "aiPatternInsights": "AI Pattern Insights",
+    "aiPatternInsightsDesc": "Personalized observations based on your data",
+    "weatherSensitivity": "Weather Sensitivity",
+    "weatherCorrelation": "{{percent}}% of your episodes correlate with weather changes.",
+    "timePattern": "Time Pattern",
+    "timePatternAdvice": "Most episodes occur in the afternoon. Consider preventive measures during peak hours.",
+    "trend": "Trend",
+    "trendDecrease": "Episode frequency decreased {{percent}}% this month.",
+    "trendNoData": "Track more episodes to see trends.",
+    "triggers": {
+      "weatherChanges": "Weather Changes",
+      "stress": "Stress",
+      "sleepIssues": "Sleep Issues",
+      "foodDrink": "Food/Drink",
+      "hormonal": "Hormonal"
+    }
   }
 }
