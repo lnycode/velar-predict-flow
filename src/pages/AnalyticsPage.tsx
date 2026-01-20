@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, memo } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { DisclaimerFooter } from "@/components/layout/DisclaimerFooter";
@@ -8,6 +9,7 @@ import { TrendingUp, Clock, MapPin, Zap, Loader2 } from "lucide-react";
 import { subMonths, format, startOfMonth, endOfMonth, getHours } from "date-fns";
 
 function AnalyticsPageComponent() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [monthlyData, setMonthlyData] = useState<Array<{ month: string; episodes: number; severity: number }>>([]);
@@ -54,17 +56,17 @@ function AnalyticsPageComponent() {
       setMonthlyData(monthly);
 
       const triggerCounts: Record<string, number> = {
-        'Weather Changes': 0, 'Stress': 0, 'Sleep Issues': 0, 'Food/Drink': 0, 'Hormonal': 0
+        [t('analytics.triggers.weatherChanges')]: 0, [t('analytics.triggers.stress')]: 0, [t('analytics.triggers.sleepIssues')]: 0, [t('analytics.triggers.foodDrink')]: 0, [t('analytics.triggers.hormonal')]: 0
       };
       
       entries.forEach(e => {
         const note = (e.note || '').toLowerCase();
-        if (note.includes('weather') || note.includes('pressure') || note.includes('rain')) triggerCounts['Weather Changes']++;
-        if (note.includes('stress') || note.includes('work') || note.includes('anxiety')) triggerCounts['Stress']++;
-        if (note.includes('sleep') || note.includes('tired') || note.includes('fatigue')) triggerCounts['Sleep Issues']++;
-        if (note.includes('food') || note.includes('alcohol') || note.includes('caffeine')) triggerCounts['Food/Drink']++;
-        if (note.includes('hormonal') || note.includes('period') || note.includes('menstrual')) triggerCounts['Hormonal']++;
-        if (e.trigger_detected) triggerCounts['Weather Changes']++;
+        if (note.includes('weather') || note.includes('pressure') || note.includes('rain')) triggerCounts[t('analytics.triggers.weatherChanges')]++;
+        if (note.includes('stress') || note.includes('work') || note.includes('anxiety')) triggerCounts[t('analytics.triggers.stress')]++;
+        if (note.includes('sleep') || note.includes('tired') || note.includes('fatigue')) triggerCounts[t('analytics.triggers.sleepIssues')]++;
+        if (note.includes('food') || note.includes('alcohol') || note.includes('caffeine')) triggerCounts[t('analytics.triggers.foodDrink')]++;
+        if (note.includes('hormonal') || note.includes('period') || note.includes('menstrual')) triggerCounts[t('analytics.triggers.hormonal')]++;
+        if (e.trigger_detected) triggerCounts[t('analytics.triggers.weatherChanges')]++;
       });
 
       const total = Object.values(triggerCounts).reduce((a, b) => a + b, 0) || 1;
@@ -138,8 +140,8 @@ function AnalyticsPageComponent() {
   return (
     <div className="space-y-6 animate-fade-in-up">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Advanced Analytics</h1>
-        <p className="text-muted-foreground">Deep insights into your migraine patterns and triggers</p>
+        <h1 className="text-2xl font-bold text-foreground">{t('analytics.title')}</h1>
+        <p className="text-muted-foreground">{t('analytics.subtitle')}</p>
       </div>
 
       {/* Key Metrics */}
@@ -150,7 +152,7 @@ function AnalyticsPageComponent() {
               <TrendingUp className="w-5 h-5 text-primary" />
               <div>
                 <div className="text-2xl font-bold text-foreground">{metrics.reduction > 0 ? `${metrics.reduction}%` : 'N/A'}</div>
-                <div className="text-sm text-muted-foreground">Reduction This Month</div>
+                <div className="text-sm text-muted-foreground">{t('analytics.reductionThisMonth')}</div>
               </div>
             </div>
           </CardContent>
@@ -162,7 +164,7 @@ function AnalyticsPageComponent() {
               <Clock className="w-5 h-5 text-warning" />
               <div>
                 <div className="text-2xl font-bold text-foreground">{metrics.avgDuration}h</div>
-                <div className="text-sm text-muted-foreground">Average Duration</div>
+                <div className="text-sm text-muted-foreground">{t('analytics.averageDuration')}</div>
               </div>
             </div>
           </CardContent>
@@ -174,7 +176,7 @@ function AnalyticsPageComponent() {
               <MapPin className="w-5 h-5 text-success" />
               <div>
                 <div className="text-2xl font-bold text-foreground">{metrics.weatherRelated}%</div>
-                <div className="text-sm text-muted-foreground">Weather Related</div>
+                <div className="text-sm text-muted-foreground">{t('analytics.weatherRelated')}</div>
               </div>
             </div>
           </CardContent>
@@ -186,7 +188,7 @@ function AnalyticsPageComponent() {
               <Zap className="w-5 h-5 text-destructive" />
               <div>
                 <div className="text-2xl font-bold text-foreground">{metrics.accuracy}%</div>
-                <div className="text-sm text-muted-foreground">Prediction Accuracy</div>
+                <div className="text-sm text-muted-foreground">{t('analytics.predictionAccuracy')}</div>
               </div>
             </div>
           </CardContent>
@@ -197,8 +199,8 @@ function AnalyticsPageComponent() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="velar-card border-border/50">
           <CardHeader>
-            <CardTitle>Monthly Trends</CardTitle>
-            <CardDescription>Episodes and severity over time</CardDescription>
+            <CardTitle>{t('analytics.monthlyTrends')}</CardTitle>
+            <CardDescription>{t('analytics.monthlyTrendsDesc')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-64">
@@ -216,8 +218,8 @@ function AnalyticsPageComponent() {
 
         <Card className="velar-card border-border/50">
           <CardHeader>
-            <CardTitle>Trigger Analysis</CardTitle>
-            <CardDescription>Distribution of migraine triggers</CardDescription>
+            <CardTitle>{t('analytics.triggerAnalysis')}</CardTitle>
+            <CardDescription>{t('analytics.triggerAnalysisDesc')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-64">
@@ -244,8 +246,8 @@ function AnalyticsPageComponent() {
 
         <Card className="velar-card border-border/50">
           <CardHeader>
-            <CardTitle>Time Pattern Analysis</CardTitle>
-            <CardDescription>When migraines typically occur</CardDescription>
+            <CardTitle>{t('analytics.timePatternAnalysis')}</CardTitle>
+            <CardDescription>{t('analytics.timePatternAnalysisDesc')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-64">
@@ -263,26 +265,26 @@ function AnalyticsPageComponent() {
 
         <Card className="velar-card border-border/50">
           <CardHeader>
-            <CardTitle>AI Pattern Insights</CardTitle>
-            <CardDescription>Personalized observations based on your data</CardDescription>
+            <CardTitle>{t('analytics.aiPatternInsights')}</CardTitle>
+            <CardDescription>{t('analytics.aiPatternInsightsDesc')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
-              <h4 className="font-semibold text-primary text-sm">Weather Sensitivity</h4>
+              <h4 className="font-semibold text-primary text-sm">{t('analytics.weatherSensitivity')}</h4>
               <p className="text-xs text-foreground mt-1">
-                {metrics.weatherRelated}% of your episodes correlate with weather changes.
+                {t('analytics.weatherCorrelation', { percent: metrics.weatherRelated })}
               </p>
             </div>
             <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
-              <h4 className="font-semibold text-warning text-sm">Time Pattern</h4>
+              <h4 className="font-semibold text-warning text-sm">{t('analytics.timePattern')}</h4>
               <p className="text-xs text-foreground mt-1">
-                Most episodes occur in the afternoon. Consider preventive measures during peak hours.
+                {t('analytics.timePatternAdvice')}
               </p>
             </div>
             <div className="p-3 bg-success/10 border border-success/20 rounded-lg">
-              <h4 className="font-semibold text-success text-sm">Trend</h4>
+              <h4 className="font-semibold text-success text-sm">{t('analytics.trend')}</h4>
               <p className="text-xs text-foreground mt-1">
-                {metrics.reduction > 0 ? `Episode frequency decreased ${metrics.reduction}% this month.` : 'Track more episodes to see trends.'}
+                {metrics.reduction > 0 ? t('analytics.trendDecrease', { percent: metrics.reduction }) : t('analytics.trendNoData')}
               </p>
             </div>
           </CardContent>
