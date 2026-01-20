@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { WeatherAlert } from "@/components/dashboard/WeatherAlert";
 import { MigrainFrequencyChart } from "@/components/dashboard/MigrainFrequencyChart";
@@ -21,6 +22,7 @@ import { BiometricIntegration } from "@/components/unique/BiometricIntegration";
 import { SocialResearchHub } from "@/components/unique/SocialResearchHub";
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [dashboardData, setDashboardData] = useState({
     totalEntries: 0,
@@ -76,8 +78,8 @@ export default function Dashboard() {
       // Create recent activity from entries
       const recentActivity = recentEntries?.slice(0, 5).map(entry => ({
         time: `${Math.round((new Date().getTime() - new Date(entry.created_at).getTime()) / (1000 * 60 * 60))}h ago`,
-        event: 'Migräne-Episode dokumentiert',
-        severity: entry.intensity > 7 ? 'Schwer' : entry.intensity > 4 ? 'Mittel' : 'Mild',
+        event: t('dashboard.episodeDocumented'),
+        severity: entry.intensity > 7 ? t('common.severe') : entry.intensity > 4 ? t('common.moderate') : t('common.mild'),
         type: 'episode'
       })) || [];
 
@@ -85,9 +87,9 @@ export default function Dashboard() {
       if (prediction) {
         recentActivity.unshift({
           time: `${Math.round((new Date().getTime() - new Date(prediction.created_at).getTime()) / (1000 * 60 * 60))}h ago`,
-          event: 'Risikoschätzung erstellt',
-          severity: prediction.risk_level > 7 ? 'Hohes Risiko' : 
-                   prediction.risk_level > 4 ? 'Mittleres Risiko' : 'Niedriges Risiko',
+          event: t('dashboard.riskEstimationCreated'),
+          severity: prediction.risk_level > 7 ? t('dashboard.highRisk') : 
+                   prediction.risk_level > 4 ? t('dashboard.mediumRisk') : t('dashboard.lowRisk'),
           type: 'prediction'
         });
       }
@@ -114,9 +116,9 @@ export default function Dashboard() {
   };
 
   const getRiskLabel = (risk: number) => {
-    if (risk <= 3) return 'Niedrig';
-    if (risk <= 6) return 'Mittel';
-    return 'Hoch';
+    if (risk <= 3) return t('common.low');
+    if (risk <= 6) return t('common.medium');
+    return t('common.high');
   };
 
   if (isLoading) {
@@ -141,11 +143,11 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold text-foreground mb-2">
-                Dashboard 
+                {t('dashboard.title')} 
                 <span className="velar-text-glow ml-2">✨</span>
               </h1>
               <p className="text-muted-foreground">
-                Ihre personalisierte Migräne-Intelligence im Überblick
+                {t('dashboard.subtitle')}
               </p>
             </div>
             
@@ -154,7 +156,7 @@ export default function Dashboard() {
                 {dashboardData.currentRisk}/10
               </div>
               <div className="text-sm text-muted-foreground">
-                Aktuelles Risiko ({getRiskLabel(dashboardData.currentRisk)})
+                {t('dashboard.currentRisk')} ({getRiskLabel(dashboardData.currentRisk)})
               </div>
             </div>
           </div>
@@ -164,14 +166,14 @@ export default function Dashboard() {
             <div className="flex items-center gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-lg mb-4">
               <AlertTriangle className="w-5 h-5 text-destructive" />
               <div>
-                <p className="font-medium text-destructive">Migräne-Warnung</p>
+                <p className="font-medium text-destructive">{t('dashboard.migraineWarning')}</p>
                 <p className="text-sm text-muted-foreground">
-                  Erhöhtes Risiko in den nächsten 24-48 Stunden erkannt
+                  {t('dashboard.highRiskDetected')}
                 </p>
               </div>
               <Link to="/forecast" className="ml-auto">
                 <Button size="sm" variant="destructive">
-                  Details ansehen
+                  {t('dashboard.viewDetails')}
                 </Button>
               </Link>
             </div>
@@ -185,12 +187,12 @@ export default function Dashboard() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Calendar className="w-4 h-4 text-primary" />
-              Gesamt Einträge
+              {t('dashboard.totalEntries')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{dashboardData.totalEntries}</div>
-            <p className="text-xs text-muted-foreground">Dokumentierte Episoden</p>
+            <p className="text-xs text-muted-foreground">{t('dashboard.documentedEpisodes')}</p>
           </CardContent>
         </Card>
 
@@ -198,12 +200,12 @@ export default function Dashboard() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Activity className="w-4 h-4 text-primary" />
-              Letzte 30 Tage
+              {t('dashboard.last30Days')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{dashboardData.recentEpisodes}</div>
-            <p className="text-xs text-muted-foreground">Neue Episoden</p>
+            <p className="text-xs text-muted-foreground">{t('dashboard.newEpisodes')}</p>
           </CardContent>
         </Card>
 
@@ -211,12 +213,12 @@ export default function Dashboard() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-primary" />
-              Ø Intensität
+              {t('dashboard.avgIntensity')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{dashboardData.avgIntensity}</div>
-            <p className="text-xs text-muted-foreground">Durchschnittswert</p>
+            <p className="text-xs text-muted-foreground">{t('dashboard.averageValue')}</p>
           </CardContent>
         </Card>
 
@@ -224,15 +226,15 @@ export default function Dashboard() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Brain className="w-4 h-4 text-primary" />
-              Analyse-Status
+              {t('dashboard.analysisStatus')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {dashboardData.lastPrediction ? 'Aktiv' : 'Bereit'}
+              {dashboardData.lastPrediction ? t('common.active') : t('common.ready')}
             </div>
             <p className="text-xs text-muted-foreground">
-              {dashboardData.lastPrediction ? 'Schätzung verfügbar' : 'Warten auf Daten'}
+              {dashboardData.lastPrediction ? t('dashboard.estimationAvailable') : t('dashboard.waitingForData')}
             </p>
           </CardContent>
         </Card>
@@ -252,13 +254,13 @@ export default function Dashboard() {
         <div className="space-y-6">
           <Card className="velar-card">
             <CardHeader>
-              <CardTitle className="text-lg">Schnellaktionen</CardTitle>
+              <CardTitle className="text-lg">{t('dashboard.quickActions')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <Link to="/diary" className="block">
                 <Button variant="outline" className="w-full justify-start">
                   <Calendar className="w-4 h-4 mr-2" />
-                  Neuer Tagebuch-Eintrag
+                  {t('dashboard.newDiaryEntry')}
                   <ArrowRight className="w-4 h-4 ml-auto" />
                 </Button>
               </Link>
@@ -266,7 +268,7 @@ export default function Dashboard() {
               <Link to="/analytics" className="block">
                 <Button variant="outline" className="w-full justify-start">
                   <TrendingUp className="w-4 h-4 mr-2" />
-                  Analysen ansehen
+                  {t('dashboard.viewAnalytics')}
                   <ArrowRight className="w-4 h-4 ml-auto" />
                 </Button>
               </Link>
@@ -274,7 +276,7 @@ export default function Dashboard() {
               <Link to="/forecast" className="block">
                 <Button variant="outline" className="w-full justify-start">
                   <Brain className="w-4 h-4 mr-2" />
-                  Weather Alerts
+                  {t('dashboard.weatherAlerts')}
                   <ArrowRight className="w-4 h-4 ml-auto" />
                 </Button>
               </Link>
@@ -297,21 +299,18 @@ export default function Dashboard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="w-5 h-5 text-primary" />
-            Letzte Aktivitäten
+            {t('dashboard.recentActivities')}
           </CardTitle>
-          <CardDescription>
-            Übersicht Ihrer aktuellen Migräne-Dokumentation und Risikoschätzungen
-          </CardDescription>
         </CardHeader>
         
         <CardContent>
           {dashboardData.recentActivity.length === 0 ? (
             <div className="text-center py-8">
               <Activity className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
-              <p className="text-muted-foreground">Noch keine Aktivitäten vorhanden</p>
+              <p className="text-muted-foreground">{t('dashboard.noActivitiesYet')}</p>
               <Link to="/diary">
                 <Button className="velar-button-primary mt-4">
-                  Ersten Eintrag erstellen
+                  {t('dashboard.createFirstEntry')}
                 </Button>
               </Link>
             </div>
