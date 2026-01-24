@@ -17,6 +17,7 @@ import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { useTranslation } from 'react-i18next';
 
 // Professional color palette
 const PDF_COLORS = {
@@ -43,6 +44,7 @@ interface EpisodeData {
 }
 
 export default function CalendarPage() {
+  const { t } = useTranslation();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isAddingEntry, setIsAddingEntry] = useState(false);
   const [migraineEntries, setMigraineEntries] = useState<any[]>([]);
@@ -75,8 +77,8 @@ export default function CalendarPage() {
       } catch (error) {
         console.error('Error fetching migraine entries:', error);
         toast({
-          title: "Error",
-          description: "Failed to load migraine entries",
+          title: t('common.error'),
+          description: t('calendar.errorLoadingEntries'),
           variant: "destructive",
         });
       } finally {
@@ -169,8 +171,8 @@ export default function CalendarPage() {
     
     if (filteredData.length === 0) {
       toast({
-        title: "No Data",
-        description: `No migraine entries found for ${periodLabel}. Try a different date range.`,
+        title: t('calendar.noData'),
+        description: t('calendar.noDataDesc', { period: periodLabel }),
         variant: "destructive",
       });
       return;
@@ -439,14 +441,14 @@ export default function CalendarPage() {
       doc.save(`velar-calendar-${periodLabel.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`);
       
       toast({
-        title: "Report Exported",
-        description: `Calendar report with ${filteredData.length} episodes for ${periodLabel} has been generated.`,
+        title: t('calendar.reportExported'),
+        description: t('calendar.reportExportedDesc', { count: filteredData.length, period: periodLabel }),
       });
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast({
-        title: "Export Failed",
-        description: "Failed to generate PDF report. Please try again.",
+        title: t('calendar.exportFailed'),
+        description: t('calendar.exportFailedDesc'),
         variant: "destructive",
       });
     } finally {
@@ -459,14 +461,14 @@ export default function CalendarPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Migraine Calendar</h1>
-          <p className="text-muted-foreground">Track and analyze your migraine patterns</p>
+          <h1 className="text-2xl font-bold text-foreground">{t('calendar.title')}</h1>
+          <p className="text-muted-foreground">{t('calendar.subtitle')}</p>
         </div>
         
         <div className="flex gap-2">
           <Button variant="outline" size="sm">
             <Filter className="w-4 h-4 mr-2" />
-            Filter
+            {t('calendar.filter')}
           </Button>
           <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
             <DialogTrigger asChild>
@@ -480,30 +482,30 @@ export default function CalendarPage() {
                 ) : (
                   <Download className="w-4 h-4 mr-2" />
                 )}
-                Export PDF
+                {t('calendar.exportPDF')}
               </Button>
             </DialogTrigger>
             <DialogContent className="velar-card border-border/50">
               <DialogHeader>
-                <DialogTitle>Export Calendar Report</DialogTitle>
-                <DialogDescription>Select the date range for your migraine report</DialogDescription>
+                <DialogTitle>{t('calendar.exportDialogTitle')}</DialogTitle>
+                <DialogDescription>{t('calendar.exportDialogDesc')}</DialogDescription>
               </DialogHeader>
               
               <div className="space-y-4">
                 <div>
-                  <Label>Date Range</Label>
+                  <Label>{t('calendar.dateRange')}</Label>
                   <Select value={exportDateRange} onValueChange={setExportDateRange}>
                     <SelectTrigger className="bg-background border-border/50">
-                      <SelectValue placeholder="Select date range" />
+                      <SelectValue placeholder={t('calendar.dateRange')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="7">Last 7 Days</SelectItem>
-                      <SelectItem value="30">Last 30 Days</SelectItem>
-                      <SelectItem value="60">Last 60 Days</SelectItem>
-                      <SelectItem value="90">Last 3 Months</SelectItem>
-                      <SelectItem value="180">Last 6 Months</SelectItem>
-                      <SelectItem value="365">Last Year</SelectItem>
-                      <SelectItem value="custom">Custom Range</SelectItem>
+                      <SelectItem value="7">{t('calendar.last7Days')}</SelectItem>
+                      <SelectItem value="30">{t('calendar.last30Days')}</SelectItem>
+                      <SelectItem value="60">{t('calendar.last60Days')}</SelectItem>
+                      <SelectItem value="90">{t('calendar.last3Months')}</SelectItem>
+                      <SelectItem value="180">{t('calendar.last6Months')}</SelectItem>
+                      <SelectItem value="365">{t('calendar.lastYear')}</SelectItem>
+                      <SelectItem value="custom">{t('calendar.customRange')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -511,7 +513,7 @@ export default function CalendarPage() {
                 {exportDateRange === "custom" && (
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Start Date</Label>
+                      <Label>{t('calendar.startDate')}</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -522,7 +524,7 @@ export default function CalendarPage() {
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {customStartDate ? format(customStartDate, "PPP") : <span>Pick start date</span>}
+                            {customStartDate ? format(customStartDate, "PPP") : <span>{t('calendar.pickStartDate')}</span>}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
@@ -538,7 +540,7 @@ export default function CalendarPage() {
                       </Popover>
                     </div>
                     <div className="space-y-2">
-                      <Label>End Date</Label>
+                      <Label>{t('calendar.endDate')}</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -549,7 +551,7 @@ export default function CalendarPage() {
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {customEndDate ? format(customEndDate, "PPP") : <span>Pick end date</span>}
+                            {customEndDate ? format(customEndDate, "PPP") : <span>{t('calendar.pickEndDate')}</span>}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
@@ -570,8 +572,8 @@ export default function CalendarPage() {
                 <div className="p-3 bg-secondary/30 rounded-lg">
                   <p className="text-sm text-muted-foreground">
                     {episodeData.length > 0 
-                      ? `${getFilteredEpisodes().length} episodes found in selected range`
-                      : "No episodes recorded yet"}
+                      ? t('calendar.episodesInRange', { count: getFilteredEpisodes().length })
+                      : t('calendar.noEpisodesRecorded')}
                   </p>
                 </div>
                 
@@ -581,7 +583,7 @@ export default function CalendarPage() {
                     variant="outline" 
                     className="flex-1"
                   >
-                    Cancel
+                    {t('calendar.cancel')}
                   </Button>
                   <Button 
                     onClick={handleExportPDF} 
@@ -594,12 +596,12 @@ export default function CalendarPage() {
                     {isExporting ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Exporting...
+                        {t('calendar.exporting')}
                       </>
                     ) : (
                       <>
                         <Download className="w-4 h-4 mr-2" />
-                        Export Report
+                        {t('calendar.exportReport')}
                       </>
                     )}
                   </Button>
@@ -611,58 +613,58 @@ export default function CalendarPage() {
             <DialogTrigger asChild>
               <Button className="velar-button-primary" size="sm">
                 <Plus className="w-4 h-4 mr-2" />
-                Add Entry
+                {t('calendar.addEntry')}
               </Button>
             </DialogTrigger>
             <DialogContent className="velar-card border-border/50">
               <DialogHeader>
-                <DialogTitle>Log Migraine Episode</DialogTitle>
-                <DialogDescription>Record details about your migraine episode</DialogDescription>
+                <DialogTitle>{t('calendar.logEpisode')}</DialogTitle>
+                <DialogDescription>{t('calendar.logEpisodeDesc')}</DialogDescription>
               </DialogHeader>
               
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="date">Date</Label>
+                    <Label htmlFor="date">{t('calendar.date')}</Label>
                     <Input id="date" type="date" className="bg-background border-border/50" />
                   </div>
                   <div>
-                    <Label htmlFor="time">Time</Label>
+                    <Label htmlFor="time">{t('calendar.time')}</Label>
                     <Input id="time" type="time" className="bg-background border-border/50" />
                   </div>
                 </div>
                 
                 <div>
-                  <Label htmlFor="severity">Severity</Label>
+                  <Label htmlFor="severity">{t('calendar.severity')}</Label>
                   <Select>
                     <SelectTrigger className="bg-background border-border/50">
-                      <SelectValue placeholder="Select severity" />
+                      <SelectValue placeholder={t('calendar.selectSeverity')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="mild">Mild</SelectItem>
-                      <SelectItem value="moderate">Moderate</SelectItem>
-                      <SelectItem value="severe">Severe</SelectItem>
-                      <SelectItem value="debilitating">Debilitating</SelectItem>
+                      <SelectItem value="mild">{t('calendar.mild')}</SelectItem>
+                      <SelectItem value="moderate">{t('calendar.moderate')}</SelectItem>
+                      <SelectItem value="severe">{t('calendar.severe')}</SelectItem>
+                      <SelectItem value="debilitating">{t('calendar.debilitating')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 
                 <div>
-                  <Label htmlFor="triggers">Triggers</Label>
-                  <Input id="triggers" placeholder="e.g., stress, weather, food" className="bg-background border-border/50" />
+                  <Label htmlFor="triggers">{t('calendar.triggers')}</Label>
+                  <Input id="triggers" placeholder={t('calendar.triggersPlaceholder')} className="bg-background border-border/50" />
                 </div>
                 
                 <div>
-                  <Label htmlFor="notes">Notes</Label>
-                  <Textarea id="notes" placeholder="Additional details..." className="bg-background border-border/50" />
+                  <Label htmlFor="notes">{t('calendar.notes')}</Label>
+                  <Textarea id="notes" placeholder={t('calendar.notesPlaceholder')} className="bg-background border-border/50" />
                 </div>
                 
                 <div className="flex gap-2">
                   <Button onClick={() => setIsAddingEntry(false)} variant="outline" className="flex-1">
-                    Cancel
+                    {t('calendar.cancel')}
                   </Button>
                   <Button onClick={() => setIsAddingEntry(false)} className="flex-1 velar-button-primary">
-                    Save Entry
+                    {t('calendar.saveEntry')}
                   </Button>
                 </div>
               </div>
@@ -676,8 +678,8 @@ export default function CalendarPage() {
         <div className="lg:col-span-2">
           <Card className="velar-card border-border/50">
             <CardHeader>
-              <CardTitle>Episode Calendar</CardTitle>
-              <CardDescription>Click on dates to view migraine episodes</CardDescription>
+              <CardTitle>{t('calendar.episodeCalendar')}</CardTitle>
+              <CardDescription>{t('calendar.episodeCalendarDesc')}</CardDescription>
             </CardHeader>
             <CardContent>
               <Calendar
@@ -700,11 +702,11 @@ export default function CalendarPage() {
               <div className="mt-4 flex gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-destructive/20 border border-destructive rounded" />
-                  <span className="text-muted-foreground">Migraine days</span>
+                  <span className="text-muted-foreground">{t('calendar.migraineDays')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-primary/20 border border-primary rounded" />
-                  <span className="text-muted-foreground">Selected</span>
+                  <span className="text-muted-foreground">{t('calendar.selected')}</span>
                 </div>
               </div>
             </CardContent>
@@ -716,15 +718,15 @@ export default function CalendarPage() {
           <Card className="velar-card border-border/50">
             <CardHeader>
               <CardTitle>
-                {selectedDate ? selectedDate.toDateString() : 'Select a Date'}
+                {selectedDate ? selectedDate.toDateString() : t('calendar.selectDate')}
               </CardTitle>
-              <CardDescription>Episode details for this day</CardDescription>
+              <CardDescription>{t('calendar.episodeDetails')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {selectedDateEntries.length > 0 ? (
                 selectedDateEntries.map((entry, index) => {
                   const intensity = entry.intensity || entry.severity || 5;
-                  const severityLabel = intensity <= 3 ? 'Mild' : intensity <= 6 ? 'Moderate' : 'Severe';
+                  const severityLabel = intensity <= 3 ? t('calendar.mild') : intensity <= 6 ? t('calendar.moderate') : t('calendar.severe');
                   const time = entry.created_at 
                     ? new Date(entry.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
                     : 'N/A';
@@ -736,15 +738,15 @@ export default function CalendarPage() {
                     <div key={entry.id || index} className="p-3 bg-secondary/30 rounded-lg space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="font-medium text-foreground">{time}</span>
-                        <Badge variant={severityLabel === 'Severe' ? 'destructive' : 'secondary'}>
+                        <Badge variant={severityLabel === t('calendar.severe') ? 'destructive' : 'secondary'}>
                           {severityLabel} ({intensity}/10)
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Duration: {entry.duration ? `${entry.duration} hours` : 'Not specified'}
+                        {t('calendar.duration')}: {entry.duration ? `${entry.duration} ${t('calendar.hours')}` : t('calendar.notSpecified')}
                       </p>
                       {entry.location && (
-                        <p className="text-sm text-muted-foreground">Location: {entry.location}</p>
+                        <p className="text-sm text-muted-foreground">{t('calendar.location')}: {entry.location}</p>
                       )}
                       {triggers.length > 0 && (
                         <div className="flex flex-wrap gap-1">
@@ -760,7 +762,7 @@ export default function CalendarPage() {
                 })
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  {isLoading ? 'Loading entries...' : 'No episodes recorded for this day'}
+                  {isLoading ? t('history.loading') : t('history.noEntriesRecorded')}
                 </p>
               )}
             </CardContent>
@@ -769,24 +771,24 @@ export default function CalendarPage() {
           {/* Monthly Summary */}
           <Card className="velar-card border-border/50">
             <CardHeader>
-              <CardTitle>Monthly Summary</CardTitle>
+              <CardTitle>{t('calendar.monthlySummary')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Total Episodes</span>
+                <span className="text-sm text-muted-foreground">{t('calendar.totalEpisodes')}</span>
                 <span className="font-semibold text-foreground">12</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Avg Duration</span>
-                <span className="font-semibold text-foreground">3.2 hours</span>
+                <span className="text-sm text-muted-foreground">{t('calendar.avgDuration')}</span>
+                <span className="font-semibold text-foreground">3.2 {t('calendar.hours')}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Most Common Trigger</span>
-                <span className="font-semibold text-foreground">Weather</span>
+                <span className="text-sm text-muted-foreground">{t('calendar.mostCommonTrigger')}</span>
+                <span className="font-semibold text-foreground">{t('triggers.weatherChanges')}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Severity Trend</span>
-                <span className="font-semibold text-success">Improving</span>
+                <span className="text-sm text-muted-foreground">{t('calendar.severityTrend')}</span>
+                <span className="font-semibold text-success">{t('calendar.improving')}</span>
               </div>
             </CardContent>
           </Card>
