@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { subDays, format, startOfDay, eachDayOfInterval } from 'date-fns';
 import { Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface DayData {
   day: string;
@@ -17,14 +18,14 @@ interface CustomTooltipProps {
   label?: string;
 }
 
-const CustomTooltip = memo(({ active, payload, label }: CustomTooltipProps) => {
+const CustomTooltip = memo(({ active, payload, label, t }: CustomTooltipProps & { t: (key: string) => string }) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-card/90 backdrop-blur-sm border border-border/50 rounded-lg p-3 shadow-lg">
         <p className="text-sm font-medium text-foreground">{`${label}`}</p>
         {payload.map((entry, index) => (
           <p key={index} className="text-sm" style={{ color: entry.color }}>
-            {`${entry.dataKey === 'frequency' ? 'Actual' : 'Predicted'}: ${entry.value}`}
+            {`${entry.dataKey === 'frequency' ? t('frequencyChart.actual') : t('frequencyChart.predicted')}: ${entry.value}`}
           </p>
         ))}
       </div>
@@ -37,6 +38,7 @@ CustomTooltip.displayName = 'CustomTooltip';
 
 function MigrainFrequencyChartComponent() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [chartData, setChartData] = useState<DayData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({ avgPerWeek: 0, accuracy: 0 });
@@ -155,18 +157,18 @@ function MigrainFrequencyChartComponent() {
     <div className="velar-card rounded-2xl p-6 animate-scale-in">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-foreground">Migraine Frequency</h3>
-          <p className="text-sm text-muted-foreground">Weekly pattern analysis</p>
+          <h3 className="text-lg font-semibold text-foreground">{t('frequencyChart.title')}</h3>
+          <p className="text-sm text-muted-foreground">{t('frequencyChart.subtitle')}</p>
         </div>
         
         <div className="flex gap-4 text-xs">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-primary" />
-            <span className="text-muted-foreground">Actual</span>
+            <span className="text-muted-foreground">{t('frequencyChart.actual')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-warning" />
-            <span className="text-muted-foreground">Predicted</span>
+            <span className="text-muted-foreground">{t('frequencyChart.predicted')}</span>
           </div>
         </div>
       </div>
@@ -186,7 +188,7 @@ function MigrainFrequencyChartComponent() {
               tickLine={false}
               tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<CustomTooltip t={t} />} />
             <Area
               type="monotone"
               dataKey="frequency"
@@ -209,11 +211,11 @@ function MigrainFrequencyChartComponent() {
       <div className="mt-4 grid grid-cols-2 gap-4 pt-4 border-t border-border/50">
         <div className="text-center">
           <div className="text-xl font-bold text-primary">{stats.avgPerWeek}</div>
-          <div className="text-xs text-muted-foreground">This Week</div>
+          <div className="text-xs text-muted-foreground">{t('frequencyChart.thisWeek')}</div>
         </div>
         <div className="text-center">
           <div className="text-xl font-bold text-warning">{stats.accuracy}%</div>
-          <div className="text-xs text-muted-foreground">Accuracy</div>
+          <div className="text-xs text-muted-foreground">{t('frequencyChart.accuracy')}</div>
         </div>
       </div>
     </div>

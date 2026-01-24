@@ -3,6 +3,7 @@ import { TrendingUp, Target, Brain, Calendar, Loader2 } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { subDays, subMonths, startOfMonth, endOfMonth } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface StatCardProps {
   title: string;
@@ -50,18 +51,19 @@ const StatCard = memo(function StatCard({ title, value, change, icon: Icon, tren
 
 function StatisticsComponent() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState<Array<{
-    title: string;
+    titleKey: string;
     value: string;
     change: string;
     icon: React.ComponentType<{ className?: string }>;
     trend: 'up' | 'down' | 'stable';
   }>>([
-    { title: "Episodes This Month", value: "0", change: "0%", icon: Calendar, trend: 'stable' },
-    { title: "Pattern Accuracy", value: "0%", change: "0%", icon: Target, trend: 'stable' },
-    { title: "AI Confidence", value: "0%", change: "0%", icon: Brain, trend: 'stable' },
-    { title: "Weekly Trend", value: "0", change: "stable", icon: TrendingUp, trend: 'stable' }
+    { titleKey: "statistics.episodesThisMonth", value: "0", change: "0%", icon: Calendar, trend: 'stable' },
+    { titleKey: "statistics.patternAccuracy", value: "0%", change: "0%", icon: Target, trend: 'stable' },
+    { titleKey: "statistics.aiConfidence", value: "0%", change: "0%", icon: Brain, trend: 'stable' },
+    { titleKey: "statistics.weeklyTrend", value: "0", change: t('statistics.stable'), icon: TrendingUp, trend: 'stable' }
   ]);
   const [nextUpdate, setNextUpdate] = useState('--');
 
@@ -151,30 +153,30 @@ function StatisticsComponent() {
 
       setStats([
         { 
-          title: "Episodes This Month", 
+          titleKey: "statistics.episodesThisMonth", 
           value: thisMonthCount.toString(), 
           change: `${Math.abs(monthChange)}%`, 
           icon: Calendar, 
           trend: monthTrend 
         },
         { 
-          title: "Pattern Accuracy", 
+          titleKey: "statistics.patternAccuracy", 
           value: `${accuracy}%`, 
           change: "5%", 
           icon: Target, 
           trend: 'up' as const 
         },
         { 
-          title: "AI Confidence", 
+          titleKey: "statistics.aiConfidence", 
           value: `${avgConfidence}%`, 
           change: "3%", 
           icon: Brain, 
           trend: 'up' as const 
         },
         { 
-          title: "Weekly Trend", 
+          titleKey: "statistics.weeklyTrend", 
           value: weeklyAvg.toString(), 
-          change: weeklyTrend === 'stable' ? 'stable' : `${Math.abs(thisWeekCount - lastWeekCount)}`, 
+          change: weeklyTrend === 'stable' ? t('statistics.stable') : `${Math.abs(thisWeekCount - lastWeekCount)}`, 
           icon: TrendingUp, 
           trend: weeklyTrend 
         }
@@ -226,16 +228,20 @@ function StatisticsComponent() {
           <TrendingUp className="w-6 h-6 text-primary" />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-foreground">AI Statistics</h3>
-          <p className="text-sm text-muted-foreground">Intelligent pattern analysis</p>
+          <h3 className="text-lg font-semibold text-foreground">{t('statistics.title')}</h3>
+          <p className="text-sm text-muted-foreground">{t('statistics.subtitle')}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        {stats.map((stat, index) => (
+        {stats.map((stat) => (
           <StatCard
-            key={stat.title}
-            {...stat}
+            key={stat.titleKey}
+            title={t(stat.titleKey)}
+            value={stat.value}
+            change={stat.change}
+            icon={stat.icon}
+            trend={stat.trend}
           />
         ))}
       </div>
@@ -243,7 +249,7 @@ function StatisticsComponent() {
       <div className="mt-6 pt-4 border-t border-border/50">
         <div className="text-center">
           <div className="text-xs text-muted-foreground mb-2">
-            Next prediction update in
+            {t('statistics.nextPrediction')}
           </div>
           <div className="text-sm font-semibold text-primary">{nextUpdate}</div>
         </div>
