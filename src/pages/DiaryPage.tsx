@@ -16,9 +16,11 @@ import {
   Calendar, Search, Filter, Trash2, Edit, 
   TrendingUp, BarChart3, Clock, MapPin 
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function DiaryPage() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [entries, setEntries] = useState<MigraineEntry[]>([]);
   const [statistics, setStatistics] = useState<MigraineStatistics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,7 +40,7 @@ export default function DiaryPage() {
       if (entriesResult.success) {
         setEntries(entriesResult.data);
       } else {
-        toast.error('Fehler beim Laden der Einträge');
+        toast.error(t('diaryPage.errorLoading'));
       }
 
       if (statsResult.success) {
@@ -46,11 +48,11 @@ export default function DiaryPage() {
       }
     } catch (error) {
       console.error('Error loading data:', error);
-      toast.error('Fehler beim Laden der Daten');
+      toast.error(t('diaryPage.errorLoadingData'));
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [user, t]);
 
   useEffect(() => {
     if (user) {
@@ -69,12 +71,12 @@ export default function DiaryPage() {
     const result = await deleteMigraineEntry(entryId, user.id);
     
     if (result.success) {
-      toast.success('Eintrag gelöscht');
+      toast.success(t('diaryPage.entryDeleted'));
       loadData();
     } else {
-      toast.error('Fehler beim Löschen des Eintrags');
+      toast.error(t('diaryPage.errorDeleting'));
     }
-  }, [user, loadData]);
+  }, [user, loadData, t]);
 
   const filteredEntries = useMemo(() => 
     entries.filter(entry => 
@@ -101,9 +103,9 @@ export default function DiaryPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Migräne-Tagebuch</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t('diaryPage.title')}</h1>
           <p className="text-muted-foreground">
-            Dokumentieren Sie Ihre Episoden für präzisere KI-Vorhersagen
+            {t('diaryPage.subtitle')}
           </p>
         </div>
         
@@ -112,7 +114,7 @@ export default function DiaryPage() {
           className="velar-button-primary"
         >
           <Calendar className="w-4 h-4 mr-2" />
-          Neuer Eintrag
+          {t('diaryPage.newEntry')}
         </Button>
       </div>
 
@@ -122,7 +124,7 @@ export default function DiaryPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Gesamt Episoden</p>
+                <p className="text-sm font-medium text-muted-foreground">{t('diaryPage.totalEpisodes')}</p>
                 <p className="text-2xl font-bold">{statistics?.totalEntries ?? 0}</p>
               </div>
               <BarChart3 className="w-8 h-8 text-primary" />
@@ -134,7 +136,7 @@ export default function DiaryPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Ø Intensität</p>
+                <p className="text-sm font-medium text-muted-foreground">{t('diaryPage.avgIntensity')}</p>
                 <p className="text-2xl font-bold">
                   {statistics?.averageIntensity?.toFixed(1) ?? '0'}
                 </p>
@@ -148,7 +150,7 @@ export default function DiaryPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Ø Dauer</p>
+                <p className="text-sm font-medium text-muted-foreground">{t('diaryPage.avgDuration')}</p>
                 <p className="text-2xl font-bold">
                   {statistics?.averageDuration?.toFixed(1) ?? '0'}h
                 </p>
@@ -162,7 +164,7 @@ export default function DiaryPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Mit Triggern</p>
+                <p className="text-sm font-medium text-muted-foreground">{t('diaryPage.withTriggers')}</p>
                 <p className="text-2xl font-bold">
                   {statistics?.triggerPercentage?.toFixed(0) ?? 0}%
                 </p>
@@ -187,7 +189,7 @@ export default function DiaryPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
-                placeholder="Einträge durchsuchen (Notizen, Ort, Medikamente...)"
+                placeholder={t('diaryPage.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -202,10 +204,10 @@ export default function DiaryPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-primary" />
-            Ihre Migräne-Einträge ({filteredEntries.length})
+            {t('diaryPage.entriesCount', { count: filteredEntries.length })}
           </CardTitle>
           <CardDescription>
-            Chronologische Übersicht Ihrer dokumentierten Episoden
+            {t('diaryPage.chronologicalOverview')}
           </CardDescription>
         </CardHeader>
         
@@ -222,12 +224,12 @@ export default function DiaryPage() {
             <div className="text-center py-12">
               <Calendar className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                {entries.length === 0 ? 'Noch keine Einträge' : 'Keine Einträge gefunden'}
+                {entries.length === 0 ? t('diaryPage.noEntriesYet') : t('diaryPage.noEntriesFound')}
               </h3>
               <p className="text-muted-foreground">
                 {entries.length === 0 
-                  ? 'Erstellen Sie Ihren ersten Tagebucheintrag, um mit der KI-Analyse zu beginnen.'
-                  : 'Versuchen Sie andere Suchbegriffe oder löschen Sie den Filter.'
+                  ? t('diaryPage.noEntriesDesc')
+                  : t('diaryPage.tryOtherSearch')
                 }
               </p>
               {entries.length === 0 && (
@@ -235,7 +237,7 @@ export default function DiaryPage() {
                   onClick={() => setShowNewEntryForm(true)}
                   className="velar-button-primary mt-4"
                 >
-                  Ersten Eintrag erstellen
+                  {t('diaryPage.createFirstEntry')}
                 </Button>
               )}
             </div>
@@ -266,19 +268,19 @@ export default function DiaryPage() {
                           variant="secondary"
                           className={getIntensityColor(entry.intensity)}
                         >
-                          Intensität {entry.intensity}/10
+                          {t('diaryPage.intensity')} {entry.intensity}/10
                         </Badge>
                         
                         {entry.triggerDetected && (
                           <Badge variant="outline">
-                            Trigger erkannt
+                            {t('diaryPage.triggerDetected')}
                           </Badge>
                         )}
                       </div>
                       
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm text-muted-foreground mb-2">
-                        <div>Schweregrad: {entry.severity}/10</div>
-                        <div>Dauer: {entry.duration}h</div>
+                        <div>{t('diaryPage.severity')}: {entry.severity}/10</div>
+                        <div>{t('diaryPage.duration')}: {entry.duration}h</div>
                         {entry.location && (
                           <div className="flex items-center gap-1">
                             <MapPin className="w-3 h-3" />
@@ -286,19 +288,19 @@ export default function DiaryPage() {
                           </div>
                         )}
                         {entry.effectiveness && entry.effectiveness > 0 && (
-                          <div>Wirksamkeit: {entry.effectiveness}/10</div>
+                          <div>{t('diaryPage.effectiveness')}: {entry.effectiveness}/10</div>
                         )}
                       </div>
                       
                       {entry.medicationTaken && (
                         <div className="text-sm mb-2">
-                          <span className="font-medium">Medikamente:</span> {entry.medicationTaken}
+                          <span className="font-medium">{t('diaryPage.medications')}:</span> {entry.medicationTaken}
                         </div>
                       )}
                       
                       {entry.note && (
                         <div className="text-sm text-muted-foreground">
-                          <span className="font-medium">Notiz:</span> {entry.note}
+                          <span className="font-medium">{t('diaryPage.note')}:</span> {entry.note}
                         </div>
                       )}
                     </div>
