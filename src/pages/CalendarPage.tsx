@@ -690,27 +690,46 @@ export default function CalendarPage() {
                 mode="single"
                 selected={selectedDate}
                 onSelect={setSelectedDate}
-                className="pointer-events-auto rounded-lg"
+                className="pointer-events-auto rounded-lg w-full"
                 modifiers={{
                   migraine: migraineDays,
                 }}
-                modifiersStyles={{
-                  migraine: {
-                    backgroundColor: 'hsl(var(--destructive) / 0.2)',
-                    color: 'hsl(var(--destructive))',
-                    fontWeight: 'bold',
-                  }
+                modifiersClassNames={{
+                  migraine: cn(
+                    "bg-gradient-to-br from-destructive/30 to-destructive/20",
+                    "text-destructive font-bold",
+                    "border-2 border-destructive/50",
+                    "shadow-md shadow-destructive/20",
+                    "hover:from-destructive/40 hover:to-destructive/30",
+                    "hover:border-destructive/70",
+                    "hover:shadow-lg hover:shadow-destructive/30",
+                    "relative",
+                    "after:content-[''] after:absolute after:bottom-0.5 after:left-1/2 after:-translate-x-1/2",
+                    "after:w-1 after:h-1 after:rounded-full after:bg-destructive"
+                  ),
                 }}
               />
               
-              <div className="mt-4 flex gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-destructive/20 border border-destructive rounded" />
-                  <span className="text-muted-foreground">{t('calendar.migraineDays')}</span>
+              {/* Legend */}
+              <div className="mt-6 pt-4 border-t border-border/30 flex flex-wrap gap-6 text-sm">
+                <div className="flex items-center gap-3">
+                  <div className="relative w-8 h-8 bg-gradient-to-br from-destructive/30 to-destructive/20 border-2 border-destructive/50 rounded-md shadow-sm shadow-destructive/20 flex items-center justify-center">
+                    <div className="w-1 h-1 rounded-full bg-destructive absolute bottom-0.5" />
+                    <span className="text-xs font-bold text-destructive">12</span>
+                  </div>
+                  <span className="text-muted-foreground font-medium">{t('calendar.migraineDays')}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-primary/20 border border-primary rounded" />
-                  <span className="text-muted-foreground">{t('calendar.selected')}</span>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-primary text-primary-foreground rounded-md ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg shadow-primary/25 flex items-center justify-center">
+                    <span className="text-xs font-bold">15</span>
+                  </div>
+                  <span className="text-muted-foreground font-medium">{t('calendar.selected')}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-accent/50 border border-accent rounded-md flex items-center justify-center">
+                    <span className="text-xs font-semibold text-accent-foreground">26</span>
+                  </div>
+                  <span className="text-muted-foreground font-medium">{t('common.today')}</span>
                 </div>
               </div>
             </CardContent>
