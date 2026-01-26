@@ -485,17 +485,18 @@ export default function CalendarPage() {
                 {t('calendar.exportPDF')}
               </Button>
             </DialogTrigger>
-            <DialogContent className="velar-card border-border/50">
-              <DialogHeader>
-                <DialogTitle>{t('calendar.exportDialogTitle')}</DialogTitle>
-                <DialogDescription>{t('calendar.exportDialogDesc')}</DialogDescription>
+            <DialogContent className="velar-card border-border/50 sm:max-w-md">
+              <DialogHeader className="text-center pb-4">
+                <DialogTitle className="text-xl">{t('calendar.exportDialogTitle')}</DialogTitle>
+                <DialogDescription className="text-center">{t('calendar.exportDialogDesc')}</DialogDescription>
               </DialogHeader>
               
-              <div className="space-y-4">
-                <div>
-                  <Label>{t('calendar.dateRange')}</Label>
+              <div className="space-y-6">
+                {/* Date Range Selection */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">{t('calendar.dateRange')}</Label>
                   <Select value={exportDateRange} onValueChange={setExportDateRange}>
-                    <SelectTrigger className="bg-background border-border/50">
+                    <SelectTrigger className="bg-background border-border/50 h-11">
                       <SelectValue placeholder={t('calendar.dateRange')} />
                     </SelectTrigger>
                     <SelectContent>
@@ -510,24 +511,25 @@ export default function CalendarPage() {
                   </Select>
                 </div>
                 
+                {/* Custom Date Range */}
                 {exportDateRange === "custom" && (
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>{t('calendar.startDate')}</Label>
+                      <Label className="text-sm font-medium">{t('calendar.startDate')}</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full justify-start text-left font-normal",
+                              "w-full h-11 justify-center text-center font-normal",
                               !customStartDate && "text-muted-foreground"
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {customStartDate ? format(customStartDate, "PPP") : <span>{t('calendar.pickStartDate')}</span>}
+                            {customStartDate ? format(customStartDate, "PP") : <span>{t('calendar.pickStartDate')}</span>}
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className="w-auto p-0" align="center">
                           <Calendar
                             mode="single"
                             selected={customStartDate}
@@ -540,21 +542,21 @@ export default function CalendarPage() {
                       </Popover>
                     </div>
                     <div className="space-y-2">
-                      <Label>{t('calendar.endDate')}</Label>
+                      <Label className="text-sm font-medium">{t('calendar.endDate')}</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full justify-start text-left font-normal",
+                              "w-full h-11 justify-center text-center font-normal",
                               !customEndDate && "text-muted-foreground"
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {customEndDate ? format(customEndDate, "PPP") : <span>{t('calendar.pickEndDate')}</span>}
+                            {customEndDate ? format(customEndDate, "PP") : <span>{t('calendar.pickEndDate')}</span>}
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className="w-auto p-0" align="center">
                           <Calendar
                             mode="single"
                             selected={customEndDate}
@@ -569,25 +571,27 @@ export default function CalendarPage() {
                   </div>
                 )}
 
-                <div className="p-3 bg-secondary/30 rounded-lg">
-                  <p className="text-sm text-muted-foreground">
+                {/* Episode Count Info Box */}
+                <div className="p-4 bg-secondary/30 rounded-lg border border-border/30 text-center">
+                  <p className="text-sm font-medium text-foreground">
                     {episodeData.length > 0 
                       ? t('calendar.episodesInRange', { count: getFilteredEpisodes().length })
                       : t('calendar.noEpisodesRecorded')}
                   </p>
                 </div>
                 
-                <div className="flex gap-2">
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-2">
                   <Button 
                     onClick={() => setIsExportDialogOpen(false)} 
                     variant="outline" 
-                    className="flex-1"
+                    className="flex-1 h-11"
                   >
                     {t('calendar.cancel')}
                   </Button>
                   <Button 
                     onClick={handleExportPDF} 
-                    className="flex-1 velar-button-primary"
+                    className="flex-1 h-11 velar-button-primary"
                     disabled={
                       isExporting || 
                       (exportDateRange === "custom" && (!customStartDate || !customEndDate))
