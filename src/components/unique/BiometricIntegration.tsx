@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Activity, Heart, Thermometer, Watch } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 
 export function BiometricIntegration() {
+  const { t } = useTranslation();
   const [biometrics, setBiometrics] = useState({
     heartRate: 72,
     bodyTemp: 36.8,
@@ -36,9 +38,9 @@ export function BiometricIntegration() {
     <Card className="p-4 bg-gradient-to-br from-green-900/20 to-teal-900/20 border-green-500/30">
       <div className="flex items-center gap-3 mb-4">
         <Watch className="w-5 h-5 text-green-400" />
-        <h3 className="text-lg font-semibold text-white">Biometrische Daten</h3>
+        <h3 className="text-lg font-semibold text-white">{t('biometric.title')}</h3>
         <Badge variant="secondary" className="bg-green-500/20 text-green-300">
-          LIVE
+          {t('biometric.live')}
         </Badge>
       </div>
       
@@ -46,7 +48,7 @@ export function BiometricIntegration() {
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Heart className="w-4 h-4 text-red-400" />
-            <span className="text-sm text-gray-300">Herzfrequenz</span>
+            <span className="text-sm text-gray-300">{t('biometric.heartRate')}</span>
           </div>
           <p className="text-xl font-bold text-white">{Math.round(biometrics.heartRate)} BPM</p>
         </div>
@@ -54,7 +56,7 @@ export function BiometricIntegration() {
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Thermometer className="w-4 h-4 text-blue-400" />
-            <span className="text-sm text-gray-300">Körpertemp.</span>
+            <span className="text-sm text-gray-300">{t('biometric.bodyTemp')}</span>
           </div>
           <p className="text-xl font-bold text-white">{biometrics.bodyTemp.toFixed(1)}°C</p>
         </div>
@@ -62,7 +64,7 @@ export function BiometricIntegration() {
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-orange-400" />
-            <span className="text-sm text-gray-300">Stress Level</span>
+            <span className="text-sm text-gray-300">{t('biometric.stressLevel')}</span>
           </div>
           <div className="flex items-center gap-2">
             <Progress value={biometrics.stressLevel * 10} className="flex-1" />
@@ -75,7 +77,7 @@ export function BiometricIntegration() {
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-purple-400 rounded-full" />
-            <span className="text-sm text-gray-300">Schlafqualität</span>
+            <span className="text-sm text-gray-300">{t('biometric.sleepQuality')}</span>
           </div>
           <p className="text-xl font-bold text-purple-300">{biometrics.sleepQuality.toFixed(1)}/10</p>
         </div>

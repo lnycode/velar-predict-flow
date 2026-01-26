@@ -555,5 +555,36 @@
       "foodDrink": "Food/Drink",
       "hormonal": "Hormonal"
     }
+  },
+  "biometric": {
+    "title": "Biometric Data",
+    "live": "LIVE",
+    "heartRate": "Heart Rate",
+    "bodyTemp": "Body Temp.",
+    "stressLevel": "Stress Level",
+    "sleepQuality": "Sleep Quality"
+  },
+  "research": {
+    "title": "Research Community",
+    "global": "GLOBAL",
+    "yourRank": "Your Rank",
+    "researchPoints": "Research Points",
+    "pointsToNextLevel": "{{points}} points to next level",
+    "shareAnonymousData": "Share Anonymous Data (+25 points)",
+    "achievementsTitle": "Achievements",
+    "communityImpact": "Community Impact",
+    "communityImpactDesc": "Your anonymous data has already helped {{count}} other users get better predictions.",
+    "ranks": {
+      "bronze": "Bronze Contributor",
+      "silver": "Silver Contributor",
+      "gold": "Gold Contributor",
+      "diamond": "Diamond Contributor"
+    },
+    "achievements": {
+      "dataPioneer": "Data Pioneer",
+      "patternHunter": "Pattern Hunter",
+      "researchChampion": "Research Champion",
+      "neuralNetworkHero": "Neural Network Hero"
+    }
   }
 }
