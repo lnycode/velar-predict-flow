@@ -3,7 +3,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Download, Filter, Loader2, CalendarIcon } from "lucide-react";
+import { Plus, Download, Filter, Loader2, CalendarIcon, FileText, Clock, TrendingUp, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -485,47 +485,63 @@ export default function CalendarPage() {
                 {t('calendar.exportPDF')}
               </Button>
             </DialogTrigger>
-            <DialogContent className="velar-card border-border/50 sm:max-w-md">
-              <DialogHeader className="text-center pb-4">
-                <DialogTitle className="text-xl">{t('calendar.exportDialogTitle')}</DialogTitle>
-                <DialogDescription className="text-center">{t('calendar.exportDialogDesc')}</DialogDescription>
-              </DialogHeader>
+            <DialogContent className="velar-card border-border/50 sm:max-w-lg p-0 overflow-hidden">
+              {/* Professional Header with Gradient */}
+              <div className="relative bg-gradient-to-br from-primary/20 via-primary/10 to-transparent p-6 border-b border-border/30">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
+                <div className="relative flex items-start gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <DialogTitle className="text-xl font-bold text-foreground mb-1">
+                      {t('calendar.exportDialogTitle')}
+                    </DialogTitle>
+                    <DialogDescription className="text-muted-foreground text-sm">
+                      {t('calendar.exportDialogDesc')}
+                    </DialogDescription>
+                  </div>
+                </div>
+              </div>
               
-              <div className="space-y-6">
+              <div className="p-6 space-y-6">
                 {/* Date Range Selection */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">{t('calendar.dateRange')}</Label>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-primary" />
+                    <Label className="text-sm font-semibold text-foreground">{t('calendar.dateRange')}</Label>
+                  </div>
                   <Select value={exportDateRange} onValueChange={setExportDateRange}>
-                    <SelectTrigger className="bg-background border-border/50 h-11">
+                    <SelectTrigger className="bg-secondary/30 border-border/50 h-12 rounded-lg hover:bg-secondary/50 transition-colors">
                       <SelectValue placeholder={t('calendar.dateRange')} />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="7">{t('calendar.last7Days')}</SelectItem>
-                      <SelectItem value="30">{t('calendar.last30Days')}</SelectItem>
-                      <SelectItem value="60">{t('calendar.last60Days')}</SelectItem>
-                      <SelectItem value="90">{t('calendar.last3Months')}</SelectItem>
-                      <SelectItem value="180">{t('calendar.last6Months')}</SelectItem>
-                      <SelectItem value="365">{t('calendar.lastYear')}</SelectItem>
-                      <SelectItem value="custom">{t('calendar.customRange')}</SelectItem>
+                    <SelectContent className="border-border/50">
+                      <SelectItem value="7" className="py-3">{t('calendar.last7Days')}</SelectItem>
+                      <SelectItem value="30" className="py-3">{t('calendar.last30Days')}</SelectItem>
+                      <SelectItem value="60" className="py-3">{t('calendar.last60Days')}</SelectItem>
+                      <SelectItem value="90" className="py-3">{t('calendar.last3Months')}</SelectItem>
+                      <SelectItem value="180" className="py-3">{t('calendar.last6Months')}</SelectItem>
+                      <SelectItem value="365" className="py-3">{t('calendar.lastYear')}</SelectItem>
+                      <SelectItem value="custom" className="py-3">{t('calendar.customRange')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 
-                {/* Custom Date Range */}
+                {/* Custom Date Range with improved styling */}
                 {exportDateRange === "custom" && (
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4 p-4 bg-secondary/20 rounded-xl border border-border/30">
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">{t('calendar.startDate')}</Label>
+                      <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('calendar.startDate')}</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full h-11 justify-center text-center font-normal",
+                              "w-full h-11 justify-center text-center font-normal bg-background/50 hover:bg-background/80 transition-colors",
                               !customStartDate && "text-muted-foreground"
                             )}
                           >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
                             {customStartDate ? format(customStartDate, "PP") : <span>{t('calendar.pickStartDate')}</span>}
                           </Button>
                         </PopoverTrigger>
@@ -542,17 +558,17 @@ export default function CalendarPage() {
                       </Popover>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">{t('calendar.endDate')}</Label>
+                      <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('calendar.endDate')}</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full h-11 justify-center text-center font-normal",
+                              "w-full h-11 justify-center text-center font-normal bg-background/50 hover:bg-background/80 transition-colors",
                               !customEndDate && "text-muted-foreground"
                             )}
                           >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
                             {customEndDate ? format(customEndDate, "PP") : <span>{t('calendar.pickEndDate')}</span>}
                           </Button>
                         </PopoverTrigger>
@@ -571,30 +587,47 @@ export default function CalendarPage() {
                   </div>
                 )}
 
-                {/* Episode Count Info Box */}
-                <div className="p-4 bg-secondary/30 rounded-lg border border-border/30 text-center">
-                  <p className="text-sm font-medium text-foreground">
-                    {episodeData.length > 0 
-                      ? t('calendar.episodesInRange', { count: getFilteredEpisodes().length })
-                      : t('calendar.noEpisodesRecorded')}
-                  </p>
+                {/* Episode Count Info Box - Enhanced */}
+                <div className="relative overflow-hidden rounded-xl border border-border/30 bg-gradient-to-br from-secondary/40 to-secondary/20">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+                  <div className="relative p-5 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <TrendingUp className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Episodes Found</p>
+                        <p className="text-2xl font-bold text-foreground">
+                          {getFilteredEpisodes().length}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground">
+                        {episodeData.length > 0 
+                          ? t('calendar.episodesInRange', { count: getFilteredEpisodes().length })
+                          : t('calendar.noEpisodesRecorded')}
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 
-                {/* Action Buttons */}
+                {/* Action Buttons - Professional styling */}
                 <div className="flex gap-3 pt-2">
                   <Button 
                     onClick={() => setIsExportDialogOpen(false)} 
                     variant="outline" 
-                    className="flex-1 h-11"
+                    className="flex-1 h-12 rounded-lg border-border/50 hover:bg-secondary/50 transition-all"
                   >
                     {t('calendar.cancel')}
                   </Button>
                   <Button 
                     onClick={handleExportPDF} 
-                    className="flex-1 h-11 velar-button-primary"
+                    className="flex-1 h-12 rounded-lg velar-button-primary group"
                     disabled={
                       isExporting || 
-                      (exportDateRange === "custom" && (!customStartDate || !customEndDate))
+                      (exportDateRange === "custom" && (!customStartDate || !customEndDate)) ||
+                      getFilteredEpisodes().length === 0
                     }
                   >
                     {isExporting ? (
@@ -606,6 +639,7 @@ export default function CalendarPage() {
                       <>
                         <Download className="w-4 h-4 mr-2" />
                         {t('calendar.exportReport')}
+                        <ChevronRight className="w-4 h-4 ml-1 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
                       </>
                     )}
                   </Button>
