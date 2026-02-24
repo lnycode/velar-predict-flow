@@ -190,153 +190,204 @@ export default function CalendarPage() {
       const reportDate = new Date().toLocaleDateString('en-US', { 
         year: 'numeric', month: 'long', day: 'numeric' 
       });
+      const docId = `VLR-${Date.now().toString().slice(-8)}`;
 
       // Calculate stats
       const totalEpisodes = filteredData.length;
-      const avgIntensity = filteredData.reduce((sum, ep) => sum + ep.intensity, 0) / totalEpisodes;
+      const avgIntensity = totalEpisodes > 0 ? filteredData.reduce((sum, ep) => sum + ep.intensity, 0) / totalEpisodes : 0;
       const severeCount = filteredData.filter(ep => ep.severity === 'Severe').length;
       const moderateCount = filteredData.filter(ep => ep.severity === 'Moderate').length;
       const mildCount = filteredData.filter(ep => ep.severity === 'Mild').length;
-      const avgDuration = filteredData.reduce((sum, ep) => parseFloat(ep.duration) || 0, 0) / totalEpisodes;
+      const avgDuration = totalEpisodes > 0 ? filteredData.reduce((sum, ep) => parseFloat(ep.duration) || 0, 0) / totalEpisodes : 0;
 
-      // Helper: draw page header
-      const drawPageHeader = (pageNum: number) => {
-        // Dark header band
-        doc.setFillColor(...PDF_COLORS.primary);
-        doc.rect(0, 0, pageWidth, 44, 'F');
-
-        // Accent stripe
-        doc.setFillColor(...PDF_COLORS.accent);
-        doc.rect(0, 44, pageWidth, 2.5, 'F');
-
-        // Brand
-        doc.setFontSize(24);
-        doc.setTextColor(...PDF_COLORS.white);
+      // --- Reusable drawing helpers ---
+      const drawSectionTitle = (title: string, yPos: number, underlineWidth = 40) => {
+        doc.setFontSize(12);
+        doc.setTextColor(...PDF_COLORS.primary);
         doc.setFont('helvetica', 'bold');
-        doc.text('VELAR', margin, 18);
-
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(180, 190, 210);
-        doc.text('Migraine Intelligence Platform', margin, 26);
-
-        // Report type
-        doc.setFontSize(11);
-        doc.setTextColor(...PDF_COLORS.white);
-        doc.setFont('helvetica', 'bold');
-        doc.text('MIGRAINE CALENDAR REPORT', margin, 38);
-
-        // Right side info
-        doc.setFillColor(30, 41, 59);
-        doc.roundedRect(pageWidth - margin - 62, 6, 62, 32, 3, 3, 'F');
-
-        doc.setFontSize(7);
-        doc.setTextColor(160, 170, 190);
-        doc.setFont('helvetica', 'normal');
-        doc.text('Report Date', pageWidth - margin - 57, 14);
-        doc.setTextColor(...PDF_COLORS.white);
-        doc.setFont('helvetica', 'bold');
-        doc.text(reportDate, pageWidth - margin - 57, 20);
-
-        doc.setTextColor(160, 170, 190);
-        doc.setFont('helvetica', 'normal');
-        doc.text('Analysis Period', pageWidth - margin - 57, 28);
-        doc.setTextColor(...PDF_COLORS.white);
-        doc.setFont('helvetica', 'bold');
-        doc.text(periodLabel, pageWidth - margin - 57, 34);
+        doc.text(title, margin, yPos);
+        doc.setDrawColor(...PDF_COLORS.accent);
+        doc.setLineWidth(0.8);
+        doc.line(margin, yPos + 2.5, margin + underlineWidth, yPos + 2.5);
+        // Subtle secondary line
+        doc.setDrawColor(220, 225, 235);
+        doc.setLineWidth(0.3);
+        doc.line(margin + underlineWidth + 2, yPos + 2.5, pageWidth - margin, yPos + 2.5);
       };
 
-      // Helper: draw page footer
+      const drawPageHeader = () => {
+        // Deep dark header
+        doc.setFillColor(...PDF_COLORS.primary);
+        doc.rect(0, 0, pageWidth, 46, 'F');
+
+        // Accent stripe with gradient effect
+        doc.setFillColor(...PDF_COLORS.accent);
+        doc.rect(0, 46, pageWidth, 2, 'F');
+        doc.setFillColor(99, 102, 241); // lighter indigo
+        doc.rect(0, 48, pageWidth, 0.5, 'F');
+
+        // Brand mark — geometric accent
+        doc.setFillColor(79, 70, 229);
+        doc.rect(margin, 8, 4, 18, 'F');
+
+        // Brand name
+        doc.setFontSize(26);
+        doc.setTextColor(...PDF_COLORS.white);
+        doc.setFont('helvetica', 'bold');
+        doc.text('VELAR', margin + 8, 20);
+
+        // Tagline
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(160, 175, 200);
+        doc.text('Migraine Intelligence Platform', margin + 8, 26);
+
+        // Report type badge
+        doc.setFillColor(30, 41, 59);
+        doc.roundedRect(margin, 32, 72, 9, 2, 2, 'F');
+        doc.setFontSize(8);
+        doc.setTextColor(...PDF_COLORS.white);
+        doc.setFont('helvetica', 'bold');
+        doc.text('⬛  CALENDAR REPORT', margin + 5, 38);
+
+        // Right side — report metadata card
+        const cardX = pageWidth - margin - 68;
+        doc.setFillColor(30, 41, 59);
+        doc.roundedRect(cardX, 6, 68, 34, 3, 3, 'F');
+        // Inner border
+        doc.setDrawColor(50, 60, 80);
+        doc.setLineWidth(0.3);
+        doc.roundedRect(cardX + 1, 7, 66, 32, 2.5, 2.5, 'S');
+
+        doc.setFontSize(6.5);
+        doc.setTextColor(130, 145, 170);
+        doc.setFont('helvetica', 'normal');
+        doc.text('REPORT DATE', cardX + 6, 14);
+        doc.setFontSize(8);
+        doc.setTextColor(...PDF_COLORS.white);
+        doc.setFont('helvetica', 'bold');
+        doc.text(reportDate, cardX + 6, 20);
+
+        doc.setFontSize(6.5);
+        doc.setTextColor(130, 145, 170);
+        doc.setFont('helvetica', 'normal');
+        doc.text('PERIOD', cardX + 6, 28);
+        doc.setFontSize(8);
+        doc.setTextColor(...PDF_COLORS.white);
+        doc.setFont('helvetica', 'bold');
+        doc.text(periodLabel, cardX + 6, 34);
+
+        // Doc ID small
+        doc.setFontSize(5.5);
+        doc.setTextColor(90, 100, 120);
+        doc.text(docId, cardX + 48, 14);
+      };
+
       const drawPageFooter = (pageNum: number, totalPages: number) => {
-        // Disclaimer
-        doc.setFillColor(254, 243, 199);
-        doc.roundedRect(margin, pageHeight - 32, contentWidth, 10, 2, 2, 'F');
-        doc.setFontSize(6);
+        // Medical disclaimer
+        doc.setFillColor(255, 251, 235);
+        doc.setDrawColor(253, 230, 138);
+        doc.setLineWidth(0.3);
+        doc.roundedRect(margin, pageHeight - 34, contentWidth, 12, 2, 2, 'FD');
+        doc.setFontSize(5.5);
         doc.setTextColor(146, 64, 14);
         doc.setFont('helvetica', 'italic');
         doc.text(
-          'NOTICE: This report is based on user-reported data and is intended to support awareness and preparation, not to replace professional medical advice.',
-          pageWidth / 2, pageHeight - 26, { align: 'center', maxWidth: contentWidth - 10 }
+          'MEDICAL DISCLAIMER: This report is generated from self-reported data and is intended as a decision support tool only. It does not constitute medical advice. Always consult a qualified healthcare professional.',
+          pageWidth / 2, pageHeight - 27, { align: 'center', maxWidth: contentWidth - 12 }
         );
 
         // Footer bar
-        doc.setDrawColor(220, 225, 235);
+        doc.setDrawColor(210, 215, 225);
         doc.setLineWidth(0.3);
         doc.line(margin, pageHeight - 18, pageWidth - margin, pageHeight - 18);
 
-        doc.setFontSize(7);
+        doc.setFontSize(6.5);
         doc.setTextColor(...PDF_COLORS.muted);
         doc.setFont('helvetica', 'normal');
-        doc.text('VELAR — Confidential Health Report', margin, pageHeight - 12);
+        doc.text('VELAR  •  Confidential Health Report', margin, pageHeight - 12);
+        doc.text(`${docId}`, pageWidth / 2, pageHeight - 12, { align: 'center' });
         doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - margin, pageHeight - 12, { align: 'right' });
-        doc.text(`ID: VLR-${Date.now().toString().slice(-8)}`, pageWidth / 2, pageHeight - 12, { align: 'center' });
+
+        // Bottom accent
+        doc.setFillColor(...PDF_COLORS.accent);
+        doc.rect(0, pageHeight - 3, pageWidth, 3, 'F');
       };
 
-      // ==================
-      // PAGE 1
-      // ==================
-      drawPageHeader(1);
+      // ==========================================
+      // PAGE 1 — Executive Summary & Analysis
+      // ==========================================
+      drawPageHeader();
+      let y = 58;
 
-      let y = 56;
+      // --- Patient / User Summary Bar ---
+      doc.setFillColor(246, 248, 252);
+      doc.setDrawColor(220, 225, 235);
+      doc.setLineWidth(0.3);
+      doc.roundedRect(margin, y, contentWidth, 14, 2, 2, 'FD');
+      doc.setFontSize(8);
+      doc.setTextColor(...PDF_COLORS.muted);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Report generated for authenticated user  •  ${totalEpisodes} episodes recorded  •  Period: ${periodLabel}`, margin + 6, y + 9);
+      y += 22;
 
-      // --- Section: Executive Summary ---
-      doc.setFontSize(13);
-      doc.setTextColor(...PDF_COLORS.primary);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Executive Summary', margin, y);
-      doc.setDrawColor(...PDF_COLORS.accent);
-      doc.setLineWidth(1);
-      doc.line(margin, y + 3, margin + 38, y + 3);
+      // --- Executive Summary ---
+      drawSectionTitle('Executive Summary', y, 38);
       y += 12;
 
-      // Summary cards - large and centered
+      // KPI Cards
       const cardCount = 4;
-      const cardGap = 6;
+      const cardGap = 5;
       const cardW = (contentWidth - cardGap * (cardCount - 1)) / cardCount;
-      const cardH = 34;
+      const cardH = 38;
 
       const cards = [
-        { label: 'Total\nEpisodes', value: totalEpisodes.toString(), color: PDF_COLORS.accent },
-        { label: 'Average\nIntensity', value: avgIntensity.toFixed(1) + ' / 10', color: PDF_COLORS.warning },
-        { label: 'Severe\nEpisodes', value: severeCount.toString(), color: PDF_COLORS.danger },
-        { label: 'Average\nDuration', value: avgDuration.toFixed(1) + ' hrs', color: PDF_COLORS.success },
+        { label: 'Total Episodes', value: totalEpisodes.toString(), subtitle: 'in period', color: PDF_COLORS.accent, icon: '◆' },
+        { label: 'Avg Intensity', value: avgIntensity.toFixed(1), subtitle: 'out of 10', color: PDF_COLORS.warning, icon: '▲' },
+        { label: 'Severe Episodes', value: severeCount.toString(), subtitle: `${totalEpisodes > 0 ? Math.round((severeCount / totalEpisodes) * 100) : 0}% of total`, color: PDF_COLORS.danger, icon: '●' },
+        { label: 'Avg Duration', value: avgDuration.toFixed(1), subtitle: 'hours', color: PDF_COLORS.success, icon: '◷' },
       ];
 
       cards.forEach((card, i) => {
         const x = margin + i * (cardW + cardGap);
 
-        // Card background with left accent
-        doc.setFillColor(...PDF_COLORS.light);
-        doc.roundedRect(x, y, cardW, cardH, 3, 3, 'F');
+        // Card with subtle shadow effect (double rect)
+        doc.setFillColor(240, 242, 248);
+        doc.roundedRect(x + 0.5, y + 0.5, cardW, cardH, 3, 3, 'F');
+        doc.setFillColor(...PDF_COLORS.white);
+        doc.setDrawColor(220, 225, 235);
+        doc.setLineWidth(0.3);
+        doc.roundedRect(x, y, cardW, cardH, 3, 3, 'FD');
+
+        // Top color bar
         doc.setFillColor(...card.color);
-        doc.rect(x, y + 4, 3, cardH - 8, 'F');
+        doc.roundedRect(x, y, cardW, 4, 3, 3, 'F');
+        doc.setFillColor(...PDF_COLORS.white);
+        doc.rect(x, y + 3, cardW, 2, 'F'); // clean bottom corners of bar
 
         // Value
-        doc.setFontSize(18);
+        doc.setFontSize(20);
         doc.setTextColor(...card.color);
         doc.setFont('helvetica', 'bold');
-        doc.text(card.value, x + cardW / 2 + 2, y + 15, { align: 'center' });
+        doc.text(card.value, x + cardW / 2, y + 18, { align: 'center' });
 
         // Label
         doc.setFontSize(7);
+        doc.setTextColor(...PDF_COLORS.primary);
+        doc.setFont('helvetica', 'bold');
+        doc.text(card.label, x + cardW / 2, y + 26, { align: 'center' });
+
+        // Subtitle
+        doc.setFontSize(6.5);
         doc.setTextColor(...PDF_COLORS.muted);
         doc.setFont('helvetica', 'normal');
-        const lines = card.label.split('\n');
-        lines.forEach((line, li) => {
-          doc.text(line, x + cardW / 2 + 2, y + 23 + li * 4, { align: 'center' });
-        });
+        doc.text(card.subtitle, x + cardW / 2, y + 32, { align: 'center' });
       });
 
       y += cardH + 14;
 
-      // --- Section: Severity Breakdown ---
-      doc.setFontSize(13);
-      doc.setTextColor(...PDF_COLORS.primary);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Severity Breakdown', margin, y);
-      doc.setDrawColor(...PDF_COLORS.accent);
-      doc.setLineWidth(1);
-      doc.line(margin, y + 3, margin + 38, y + 3);
+      // --- Severity Distribution ---
+      drawSectionTitle('Severity Distribution', y, 40);
       y += 10;
 
       const severityBars = [
@@ -344,46 +395,93 @@ export default function CalendarPage() {
         { label: 'Moderate (4–6)', count: moderateCount, color: PDF_COLORS.warning },
         { label: 'Severe (7–10)', count: severeCount, color: PDF_COLORS.danger },
       ];
-      const maxBarW = contentWidth - 70;
+      const maxBarW = contentWidth - 80;
       const maxCount = Math.max(...severityBars.map(b => b.count), 1);
 
       severityBars.forEach((bar, i) => {
-        const barY = y + i * 16;
+        const barY = y + i * 18;
+
+        // Row background
+        if (i % 2 === 0) {
+          doc.setFillColor(250, 251, 253);
+          doc.rect(margin, barY - 2, contentWidth, 16, 'F');
+        }
 
         // Label
         doc.setFontSize(9);
         doc.setTextColor(...PDF_COLORS.primary);
         doc.setFont('helvetica', 'normal');
-        doc.text(bar.label, margin, barY + 7);
+        doc.text(bar.label, margin + 4, barY + 8);
 
         // Track
-        const trackX = margin + 42;
+        const trackX = margin + 48;
         doc.setFillColor(230, 232, 240);
-        doc.roundedRect(trackX, barY + 1, maxBarW, 8, 2, 2, 'F');
+        doc.roundedRect(trackX, barY + 2, maxBarW, 9, 3, 3, 'F');
 
         // Fill
-        const fillW = Math.max((bar.count / maxCount) * maxBarW, 2);
+        const fillW = Math.max((bar.count / maxCount) * maxBarW, 3);
         doc.setFillColor(...bar.color);
-        doc.roundedRect(trackX, barY + 1, fillW, 8, 2, 2, 'F');
+        doc.roundedRect(trackX, barY + 2, fillW, 9, 3, 3, 'F');
 
-        // Count + percentage
+        // Count badge
         const pct = totalEpisodes > 0 ? Math.round((bar.count / totalEpisodes) * 100) : 0;
-        doc.setFontSize(9);
+        doc.setFontSize(8);
         doc.setTextColor(...PDF_COLORS.primary);
         doc.setFont('helvetica', 'bold');
-        doc.text(`${bar.count}  (${pct}%)`, trackX + maxBarW + 4, barY + 7);
+        doc.text(`${bar.count}`, trackX + maxBarW + 6, barY + 8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...PDF_COLORS.muted);
+        doc.text(`(${pct}%)`, trackX + maxBarW + 14, barY + 8);
       });
 
-      y += severityBars.length * 16 + 10;
+      y += severityBars.length * 18 + 10;
 
-      // --- Section: Top Triggers ---
-      doc.setFontSize(13);
-      doc.setTextColor(...PDF_COLORS.primary);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Top Triggers', margin, y);
-      doc.setDrawColor(...PDF_COLORS.accent);
-      doc.setLineWidth(1);
-      doc.line(margin, y + 3, margin + 28, y + 3);
+      // --- Weekly Pattern Analysis ---
+      drawSectionTitle('Weekly Pattern', y, 34);
+      y += 10;
+
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const dayCounts = new Array(7).fill(0);
+      filteredData.forEach(ep => {
+        const dow = new Date(ep.date).getDay();
+        dayCounts[dow]++;
+      });
+      const maxDayCount = Math.max(...dayCounts, 1);
+      const cellW = (contentWidth - 6) / 7;
+      const cellH = 28;
+
+      dayNames.forEach((day, i) => {
+        const x = margin + i * (cellW + 1);
+        const count = dayCounts[i];
+        const intensity = count / maxDayCount;
+
+        // Cell background with heat intensity
+        const r = Math.round(246 - intensity * 180);
+        const g = Math.round(248 - intensity * 180);
+        const b = Math.round(252 - intensity * 20);
+        doc.setFillColor(r, g, b);
+        doc.setDrawColor(220, 225, 235);
+        doc.setLineWidth(0.2);
+        doc.roundedRect(x, y, cellW, cellH, 2, 2, 'FD');
+
+        // Day name
+        doc.setFontSize(7);
+        doc.setTextColor(...PDF_COLORS.muted);
+        doc.setFont('helvetica', 'bold');
+        doc.text(day, x + cellW / 2, y + 8, { align: 'center' });
+
+        // Count
+        doc.setFontSize(13);
+        const textColor = intensity > 0.5 ? PDF_COLORS.white : PDF_COLORS.primary;
+        doc.setTextColor(...textColor);
+        doc.setFont('helvetica', 'bold');
+        doc.text(count.toString(), x + cellW / 2, y + 21, { align: 'center' });
+      });
+
+      y += cellH + 12;
+
+      // --- Top Triggers ---
+      drawSectionTitle('Trigger Analysis', y, 34);
       y += 8;
 
       const triggerCounts: Record<string, number> = {};
@@ -395,48 +493,64 @@ export default function CalendarPage() {
       const sortedTriggers = Object.entries(triggerCounts).sort((a, b) => b[1] - a[1]).slice(0, 6);
 
       if (sortedTriggers.length > 0) {
-        const triggerTableData = sortedTriggers.map(([trigger, count]) => {
+        const triggerTableData = sortedTriggers.map(([trigger, count], idx) => {
           const pct = Math.round((count / totalEpisodes) * 100);
-          return [trigger, count.toString(), `${pct}%`];
+          const significance = pct >= 40 ? 'High' : pct >= 20 ? 'Moderate' : 'Low';
+          return [(idx + 1).toString(), trigger, count.toString(), `${pct}%`, significance];
         });
 
         autoTable(doc, {
-          head: [['Trigger', 'Occurrences', '% of Episodes']],
+          head: [['#', 'Trigger Factor', 'Count', 'Correlation', 'Significance']],
           body: triggerTableData,
           startY: y,
           margin: { left: margin, right: margin },
-          tableWidth: contentWidth * 0.6,
-          styles: { fontSize: 9, cellPadding: 4, textColor: PDF_COLORS.primary, lineColor: [220, 225, 235], lineWidth: 0.2 },
+          tableWidth: contentWidth,
+          styles: { fontSize: 8, cellPadding: 3.5, textColor: PDF_COLORS.primary, lineColor: [230, 232, 240], lineWidth: 0.15 },
           headStyles: {
             fillColor: PDF_COLORS.primary,
             textColor: PDF_COLORS.white,
             fontStyle: 'bold',
-            fontSize: 9,
+            fontSize: 8,
           },
-          alternateRowStyles: { fillColor: [246, 248, 252] },
+          alternateRowStyles: { fillColor: [248, 249, 252] },
           columnStyles: {
-            1: { halign: 'center', cellWidth: 28 },
-            2: { halign: 'center', cellWidth: 28 },
+            0: { halign: 'center', cellWidth: 10 },
+            1: { cellWidth: 55 },
+            2: { halign: 'center', cellWidth: 20 },
+            3: { halign: 'center', cellWidth: 24 },
+            4: { halign: 'center', cellWidth: 26 },
+          },
+          didParseCell: (data: any) => {
+            if (data.section === 'body' && data.column.index === 4) {
+              const val = data.cell.raw;
+              if (val === 'High') data.cell.styles.textColor = PDF_COLORS.danger;
+              else if (val === 'Moderate') data.cell.styles.textColor = PDF_COLORS.warning;
+              else data.cell.styles.textColor = PDF_COLORS.success;
+              data.cell.styles.fontStyle = 'bold';
+            }
           },
         });
-
-        y = (doc as any).lastAutoTable.finalY + 6;
       }
 
-      // ==================
-      // PAGE 2 — Episode Details
-      // ==================
+      // ==========================================
+      // PAGE 2 — Detailed Episode Log
+      // ==========================================
       doc.addPage();
-      drawPageHeader(2);
-      y = 56;
+      drawPageHeader();
+      y = 58;
 
-      doc.setFontSize(13);
-      doc.setTextColor(...PDF_COLORS.primary);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Episode Detail Log', margin, y);
-      doc.setDrawColor(...PDF_COLORS.accent);
-      doc.setLineWidth(1);
-      doc.line(margin, y + 3, margin + 34, y + 3);
+      // User bar
+      doc.setFillColor(246, 248, 252);
+      doc.setDrawColor(220, 225, 235);
+      doc.setLineWidth(0.3);
+      doc.roundedRect(margin, y, contentWidth, 14, 2, 2, 'FD');
+      doc.setFontSize(8);
+      doc.setTextColor(...PDF_COLORS.muted);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Detailed Episode Log  •  ${totalEpisodes} entries  •  Sorted by date (newest first)`, margin + 6, y + 9);
+      y += 22;
+
+      drawSectionTitle('Episode Detail Log', y, 36);
       y += 10;
 
       const tableData = filteredData.map((ep, i) => [
@@ -459,8 +573,8 @@ export default function CalendarPage() {
           fontSize: 8,
           cellPadding: 3.5,
           textColor: PDF_COLORS.primary,
-          lineColor: [220, 225, 235],
-          lineWidth: 0.2,
+          lineColor: [230, 232, 240],
+          lineWidth: 0.15,
         },
         headStyles: {
           fillColor: PDF_COLORS.primary,
@@ -468,7 +582,7 @@ export default function CalendarPage() {
           fontStyle: 'bold',
           fontSize: 8,
         },
-        alternateRowStyles: { fillColor: [246, 248, 252] },
+        alternateRowStyles: { fillColor: [248, 249, 252] },
         columnStyles: {
           0: { cellWidth: 8, halign: 'center' },
           1: { cellWidth: 22 },
@@ -489,6 +603,30 @@ export default function CalendarPage() {
           }
         },
       });
+
+      // --- Notes section after table ---
+      const tableEndY = (doc as any).lastAutoTable.finalY + 10;
+      if (tableEndY < pageHeight - 80) {
+        drawSectionTitle('Clinical Notes', tableEndY, 30);
+        doc.setFillColor(248, 249, 252);
+        doc.setDrawColor(220, 225, 235);
+        doc.setLineWidth(0.3);
+        doc.roundedRect(margin, tableEndY + 6, contentWidth, 40, 3, 3, 'FD');
+
+        doc.setFontSize(8);
+        doc.setTextColor(...PDF_COLORS.primary);
+        doc.setFont('helvetica', 'normal');
+        const notes = [
+          `• Episode frequency: ${totalEpisodes} episodes over the reporting period (avg ${(totalEpisodes / Math.max(parseInt(exportDateRange) || 30, 1) * 7).toFixed(1)}/week)`,
+          `• Severity profile: ${severeCount} severe (${totalEpisodes > 0 ? Math.round((severeCount / totalEpisodes) * 100) : 0}%), ${moderateCount} moderate, ${mildCount} mild`,
+          `• Average episode intensity: ${avgIntensity.toFixed(1)}/10 — Average duration: ${avgDuration.toFixed(1)} hours`,
+          `• Most common trigger: ${sortedTriggers.length > 0 ? sortedTriggers[0][0] : 'N/A'} (${sortedTriggers.length > 0 ? sortedTriggers[0][1] : 0} occurrences)`,
+          `• Recommendation: Review trigger patterns with healthcare provider for preventive strategies.`,
+        ];
+        notes.forEach((note, i) => {
+          doc.text(note, margin + 6, tableEndY + 14 + i * 7, { maxWidth: contentWidth - 12 });
+        });
+      }
 
       // Draw footers on all pages
       const totalPages = doc.getNumberOfPages();
