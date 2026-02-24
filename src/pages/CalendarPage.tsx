@@ -183,261 +183,320 @@ export default function CalendarPage() {
     
     try {
       const doc = new jsPDF();
-    const reportDate = new Date().toLocaleDateString('en-US', { 
-      year: 'numeric',
-      month: 'long', 
-      day: 'numeric' 
-    });
-
-    // === HEADER ===
-    doc.setFillColor(...PDF_COLORS.primary);
-    doc.rect(0, 0, 210, 35, 'F');
-    
-    // Logo/Brand
-    doc.setFontSize(20);
-    doc.setTextColor(...PDF_COLORS.white);
-    doc.setFont('helvetica', 'bold');
-    doc.text('VELAR', 15, 15);
-    
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Decision Support Tool', 15, 21);
-    
-    // Report title
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text('MIGRAINE CALENDAR REPORT', 15, 30);
-    
-    // Report info box
-    doc.setFillColor(...PDF_COLORS.white);
-    doc.roundedRect(130, 5, 65, 25, 2, 2, 'F');
-    
-    doc.setFontSize(7);
-    doc.setTextColor(...PDF_COLORS.primary);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Generated:', 135, 12);
-    doc.setFont('helvetica', 'normal');
-    doc.text(reportDate, 155, 12);
-    
-    doc.setFont('helvetica', 'bold');
-    doc.text('Period:', 135, 19);
-    doc.setFont('helvetica', 'normal');
-    doc.text(periodLabel, 155, 19);
-    
-    doc.setFont('helvetica', 'bold');
-    doc.text('Doc ID:', 135, 26);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`VLR-${Date.now().toString().slice(-8)}`, 155, 26);
-
-    // === SUMMARY CARDS ===
-    const cardY = 45;
-    const cardWidth = 43;
-    const cardHeight = 25;
-    
-    // Calculate stats from filtered data
-    const totalEpisodes = filteredData.length;
-    const avgIntensity = filteredData.reduce((sum, ep) => sum + ep.intensity, 0) / totalEpisodes;
-    const severeCount = filteredData.filter(ep => ep.severity === 'Severe').length;
-    const avgDuration = filteredData.reduce((sum, ep) => parseFloat(ep.duration) || 0, 0) / totalEpisodes;
-    
-    const cards = [
-      { label: 'Total Episodes', value: totalEpisodes.toString(), color: PDF_COLORS.accent },
-      { label: 'Avg. Intensity', value: avgIntensity.toFixed(1) + '/10', color: PDF_COLORS.warning },
-      { label: 'Severe Episodes', value: severeCount.toString(), color: PDF_COLORS.danger },
-      { label: 'Avg. Duration', value: avgDuration.toFixed(1) + 'h', color: PDF_COLORS.success },
-    ];
-    
-    cards.forEach((card, i) => {
-      const x = 15 + (i * (cardWidth + 3));
-      
-      // Card background
-      doc.setFillColor(...PDF_COLORS.light);
-      doc.setDrawColor(...card.color);
-      doc.setLineWidth(0.5);
-      doc.roundedRect(x, cardY, cardWidth, cardHeight, 2, 2, 'FD');
-      
-      // Top accent
-      doc.setFillColor(...card.color);
-      doc.rect(x, cardY, cardWidth, 3, 'F');
-      
-      // Value
-      doc.setFontSize(14);
-      doc.setTextColor(...card.color);
-      doc.setFont('helvetica', 'bold');
-      doc.text(card.value, x + cardWidth / 2, cardY + 14, { align: 'center' });
-      
-      // Label
-      doc.setFontSize(7);
-      doc.setTextColor(...PDF_COLORS.muted);
-      doc.setFont('helvetica', 'normal');
-      doc.text(card.label, x + cardWidth / 2, cardY + 21, { align: 'center' });
-    });
-
-    // === EPISODE DETAILS TABLE ===
-    doc.setFontSize(11);
-    doc.setTextColor(...PDF_COLORS.primary);
-    doc.setFont('helvetica', 'bold');
-    doc.text('EPISODE DETAILS', 15, 82);
-    
-    doc.setDrawColor(...PDF_COLORS.accent);
-    doc.setLineWidth(0.8);
-    doc.line(15, 84, 55, 84);
-
-    const tableData = filteredData.map((ep, i) => [
-      (i + 1).toString(),
-      ep.date,
-      ep.time,
-      ep.severity,
-      `${ep.intensity}/10`,
-      ep.duration,
-      ep.location || '-',
-      ep.triggers.slice(0, 2).join(', ')
-    ]);
-
-    autoTable(doc, {
-      head: [['#', 'Date', 'Time', 'Severity', 'Intensity', 'Duration', 'Location', 'Triggers']],
-      body: tableData,
-      startY: 88,
-      margin: { left: 15, right: 15 },
-      styles: { 
-        fontSize: 8, 
-        cellPadding: 3,
-        textColor: PDF_COLORS.primary
-      },
-      headStyles: { 
-        fillColor: PDF_COLORS.primary, 
-        textColor: PDF_COLORS.white,
-        fontStyle: 'bold',
-        fontSize: 8
-      },
-      alternateRowStyles: { fillColor: PDF_COLORS.light },
-      columnStyles: {
-        0: { cellWidth: 8, halign: 'center' },
-        1: { cellWidth: 22 },
-        2: { cellWidth: 15, halign: 'center' },
-        3: { cellWidth: 20, halign: 'center' },
-        4: { cellWidth: 18, halign: 'center' },
-        5: { cellWidth: 18, halign: 'center' },
-        6: { cellWidth: 22 },
-        7: { cellWidth: 45 }
-      }
-    });
-
-    const tableEndY = (doc as any).lastAutoTable.finalY + 10;
-
-    // === INTENSITY DISTRIBUTION ===
-    doc.setFontSize(11);
-    doc.setTextColor(...PDF_COLORS.primary);
-    doc.setFont('helvetica', 'bold');
-    doc.text('INTENSITY DISTRIBUTION', 15, tableEndY);
-    
-    doc.setDrawColor(...PDF_COLORS.accent);
-    doc.setLineWidth(0.8);
-    doc.line(15, tableEndY + 2, 62, tableEndY + 2);
-
-    // Simple intensity bar chart
-    const intensityGroups = {
-      'Mild (1-3)': filteredData.filter(ep => ep.intensity <= 3).length,
-      'Moderate (4-6)': filteredData.filter(ep => ep.intensity >= 4 && ep.intensity <= 6).length,
-      'Severe (7-10)': filteredData.filter(ep => ep.intensity >= 7).length,
-    };
-
-    const barY = tableEndY + 8;
-    const barHeight = 8;
-    const maxBarWidth = 80;
-    const maxCount = Math.max(...Object.values(intensityGroups), 1);
-    
-    Object.entries(intensityGroups).forEach(([label, count], i) => {
-      const y = barY + (i * 14);
-      const barWidth = (count / maxCount) * maxBarWidth;
-      const color = i === 0 ? PDF_COLORS.success : i === 1 ? PDF_COLORS.warning : PDF_COLORS.danger;
-      
-      // Label
-      doc.setFontSize(8);
-      doc.setTextColor(...PDF_COLORS.primary);
-      doc.setFont('helvetica', 'normal');
-      doc.text(label, 15, y + 6);
-      
-      // Bar background
-      doc.setFillColor(...PDF_COLORS.light);
-      doc.roundedRect(55, y, maxBarWidth, barHeight, 1, 1, 'F');
-      
-      // Bar fill
-      if (barWidth > 0) {
-        doc.setFillColor(...color);
-        doc.roundedRect(55, y, barWidth, barHeight, 1, 1, 'F');
-      }
-      
-      // Count
-      doc.setFontSize(8);
-      doc.setTextColor(...PDF_COLORS.primary);
-      doc.setFont('helvetica', 'bold');
-      doc.text(count.toString(), 140, y + 6);
-    });
-
-    // === TRIGGER ANALYSIS ===
-    const triggerY = barY + 50;
-    doc.setFontSize(11);
-    doc.setTextColor(...PDF_COLORS.primary);
-    doc.setFont('helvetica', 'bold');
-    doc.text('TOP TRIGGERS', 15, triggerY);
-    
-    doc.setDrawColor(...PDF_COLORS.accent);
-    doc.setLineWidth(0.8);
-    doc.line(15, triggerY + 2, 45, triggerY + 2);
-
-    // Count triggers
-    const triggerCounts: Record<string, number> = {};
-    filteredData.forEach(ep => {
-      ep.triggers.forEach(trigger => {
-        triggerCounts[trigger] = (triggerCounts[trigger] || 0) + 1;
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const margin = 18;
+      const contentWidth = pageWidth - margin * 2;
+      const reportDate = new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', month: 'long', day: 'numeric' 
       });
-    });
-    
-    const sortedTriggers = Object.entries(triggerCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
 
-    sortedTriggers.forEach(([trigger, count], i) => {
-      const y = triggerY + 8 + (i * 6);
-      doc.setFontSize(8);
+      // Calculate stats
+      const totalEpisodes = filteredData.length;
+      const avgIntensity = filteredData.reduce((sum, ep) => sum + ep.intensity, 0) / totalEpisodes;
+      const severeCount = filteredData.filter(ep => ep.severity === 'Severe').length;
+      const moderateCount = filteredData.filter(ep => ep.severity === 'Moderate').length;
+      const mildCount = filteredData.filter(ep => ep.severity === 'Mild').length;
+      const avgDuration = filteredData.reduce((sum, ep) => parseFloat(ep.duration) || 0, 0) / totalEpisodes;
+
+      // Helper: draw page header
+      const drawPageHeader = (pageNum: number) => {
+        // Dark header band
+        doc.setFillColor(...PDF_COLORS.primary);
+        doc.rect(0, 0, pageWidth, 44, 'F');
+
+        // Accent stripe
+        doc.setFillColor(...PDF_COLORS.accent);
+        doc.rect(0, 44, pageWidth, 2.5, 'F');
+
+        // Brand
+        doc.setFontSize(24);
+        doc.setTextColor(...PDF_COLORS.white);
+        doc.setFont('helvetica', 'bold');
+        doc.text('VELAR', margin, 18);
+
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(180, 190, 210);
+        doc.text('Migraine Intelligence Platform', margin, 26);
+
+        // Report type
+        doc.setFontSize(11);
+        doc.setTextColor(...PDF_COLORS.white);
+        doc.setFont('helvetica', 'bold');
+        doc.text('MIGRAINE CALENDAR REPORT', margin, 38);
+
+        // Right side info
+        doc.setFillColor(30, 41, 59);
+        doc.roundedRect(pageWidth - margin - 62, 6, 62, 32, 3, 3, 'F');
+
+        doc.setFontSize(7);
+        doc.setTextColor(160, 170, 190);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Report Date', pageWidth - margin - 57, 14);
+        doc.setTextColor(...PDF_COLORS.white);
+        doc.setFont('helvetica', 'bold');
+        doc.text(reportDate, pageWidth - margin - 57, 20);
+
+        doc.setTextColor(160, 170, 190);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Analysis Period', pageWidth - margin - 57, 28);
+        doc.setTextColor(...PDF_COLORS.white);
+        doc.setFont('helvetica', 'bold');
+        doc.text(periodLabel, pageWidth - margin - 57, 34);
+      };
+
+      // Helper: draw page footer
+      const drawPageFooter = (pageNum: number, totalPages: number) => {
+        // Disclaimer
+        doc.setFillColor(254, 243, 199);
+        doc.roundedRect(margin, pageHeight - 32, contentWidth, 10, 2, 2, 'F');
+        doc.setFontSize(6);
+        doc.setTextColor(146, 64, 14);
+        doc.setFont('helvetica', 'italic');
+        doc.text(
+          'NOTICE: This report is based on user-reported data and is intended to support awareness and preparation, not to replace professional medical advice.',
+          pageWidth / 2, pageHeight - 26, { align: 'center', maxWidth: contentWidth - 10 }
+        );
+
+        // Footer bar
+        doc.setDrawColor(220, 225, 235);
+        doc.setLineWidth(0.3);
+        doc.line(margin, pageHeight - 18, pageWidth - margin, pageHeight - 18);
+
+        doc.setFontSize(7);
+        doc.setTextColor(...PDF_COLORS.muted);
+        doc.setFont('helvetica', 'normal');
+        doc.text('VELAR — Confidential Health Report', margin, pageHeight - 12);
+        doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - margin, pageHeight - 12, { align: 'right' });
+        doc.text(`ID: VLR-${Date.now().toString().slice(-8)}`, pageWidth / 2, pageHeight - 12, { align: 'center' });
+      };
+
+      // ==================
+      // PAGE 1
+      // ==================
+      drawPageHeader(1);
+
+      let y = 56;
+
+      // --- Section: Executive Summary ---
+      doc.setFontSize(13);
       doc.setTextColor(...PDF_COLORS.primary);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`• ${trigger}`, 20, y);
       doc.setFont('helvetica', 'bold');
-      doc.text(`${count}x`, 100, y);
-    });
+      doc.text('Executive Summary', margin, y);
+      doc.setDrawColor(...PDF_COLORS.accent);
+      doc.setLineWidth(1);
+      doc.line(margin, y + 3, margin + 38, y + 3);
+      y += 12;
 
-    // === FOOTER ===
-    const pageHeight = doc.internal.pageSize.height;
-    
-    // Disclaimer box
-    doc.setFillColor(254, 243, 199);
-    doc.roundedRect(15, pageHeight - 35, 180, 12, 2, 2, 'F');
-    
-    doc.setFontSize(7);
-    doc.setTextColor(...PDF_COLORS.secondary);
-    doc.setFont('helvetica', 'bold');
-    doc.text('DECISION SUPPORT NOTICE', 20, pageHeight - 28);
-    doc.setFont('helvetica', 'normal');
-    doc.text(
-      'This report is based on user-reported data and is intended to support awareness and preparation, not to replace medical advice.',
-      20, 
-      pageHeight - 23
-    );
+      // Summary cards - large and centered
+      const cardCount = 4;
+      const cardGap = 6;
+      const cardW = (contentWidth - cardGap * (cardCount - 1)) / cardCount;
+      const cardH = 34;
 
-    // Footer line
-    doc.setDrawColor(...PDF_COLORS.light);
-    doc.setLineWidth(0.5);
-    doc.line(15, pageHeight - 18, 195, pageHeight - 18);
-    
-    doc.setFontSize(7);
-    doc.setTextColor(...PDF_COLORS.muted);
-    doc.text('VELAR Calendar Report', 15, pageHeight - 12);
-    doc.text('Confidential - For Personal Use', 15, pageHeight - 8);
-    doc.text(`Generated: ${new Date().toISOString()}`, 195, pageHeight - 12, { align: 'right' });
-    doc.text('Page 1 of 1', 195, pageHeight - 8, { align: 'right' });
-    
+      const cards = [
+        { label: 'Total\nEpisodes', value: totalEpisodes.toString(), color: PDF_COLORS.accent },
+        { label: 'Average\nIntensity', value: avgIntensity.toFixed(1) + ' / 10', color: PDF_COLORS.warning },
+        { label: 'Severe\nEpisodes', value: severeCount.toString(), color: PDF_COLORS.danger },
+        { label: 'Average\nDuration', value: avgDuration.toFixed(1) + ' hrs', color: PDF_COLORS.success },
+      ];
+
+      cards.forEach((card, i) => {
+        const x = margin + i * (cardW + cardGap);
+
+        // Card background with left accent
+        doc.setFillColor(...PDF_COLORS.light);
+        doc.roundedRect(x, y, cardW, cardH, 3, 3, 'F');
+        doc.setFillColor(...card.color);
+        doc.rect(x, y + 4, 3, cardH - 8, 'F');
+
+        // Value
+        doc.setFontSize(18);
+        doc.setTextColor(...card.color);
+        doc.setFont('helvetica', 'bold');
+        doc.text(card.value, x + cardW / 2 + 2, y + 15, { align: 'center' });
+
+        // Label
+        doc.setFontSize(7);
+        doc.setTextColor(...PDF_COLORS.muted);
+        doc.setFont('helvetica', 'normal');
+        const lines = card.label.split('\n');
+        lines.forEach((line, li) => {
+          doc.text(line, x + cardW / 2 + 2, y + 23 + li * 4, { align: 'center' });
+        });
+      });
+
+      y += cardH + 14;
+
+      // --- Section: Severity Breakdown ---
+      doc.setFontSize(13);
+      doc.setTextColor(...PDF_COLORS.primary);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Severity Breakdown', margin, y);
+      doc.setDrawColor(...PDF_COLORS.accent);
+      doc.setLineWidth(1);
+      doc.line(margin, y + 3, margin + 38, y + 3);
+      y += 10;
+
+      const severityBars = [
+        { label: 'Mild (1–3)', count: mildCount, color: PDF_COLORS.success },
+        { label: 'Moderate (4–6)', count: moderateCount, color: PDF_COLORS.warning },
+        { label: 'Severe (7–10)', count: severeCount, color: PDF_COLORS.danger },
+      ];
+      const maxBarW = contentWidth - 70;
+      const maxCount = Math.max(...severityBars.map(b => b.count), 1);
+
+      severityBars.forEach((bar, i) => {
+        const barY = y + i * 16;
+
+        // Label
+        doc.setFontSize(9);
+        doc.setTextColor(...PDF_COLORS.primary);
+        doc.setFont('helvetica', 'normal');
+        doc.text(bar.label, margin, barY + 7);
+
+        // Track
+        const trackX = margin + 42;
+        doc.setFillColor(230, 232, 240);
+        doc.roundedRect(trackX, barY + 1, maxBarW, 8, 2, 2, 'F');
+
+        // Fill
+        const fillW = Math.max((bar.count / maxCount) * maxBarW, 2);
+        doc.setFillColor(...bar.color);
+        doc.roundedRect(trackX, barY + 1, fillW, 8, 2, 2, 'F');
+
+        // Count + percentage
+        const pct = totalEpisodes > 0 ? Math.round((bar.count / totalEpisodes) * 100) : 0;
+        doc.setFontSize(9);
+        doc.setTextColor(...PDF_COLORS.primary);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${bar.count}  (${pct}%)`, trackX + maxBarW + 4, barY + 7);
+      });
+
+      y += severityBars.length * 16 + 10;
+
+      // --- Section: Top Triggers ---
+      doc.setFontSize(13);
+      doc.setTextColor(...PDF_COLORS.primary);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Top Triggers', margin, y);
+      doc.setDrawColor(...PDF_COLORS.accent);
+      doc.setLineWidth(1);
+      doc.line(margin, y + 3, margin + 28, y + 3);
+      y += 8;
+
+      const triggerCounts: Record<string, number> = {};
+      filteredData.forEach(ep => {
+        ep.triggers.forEach(trigger => {
+          triggerCounts[trigger] = (triggerCounts[trigger] || 0) + 1;
+        });
+      });
+      const sortedTriggers = Object.entries(triggerCounts).sort((a, b) => b[1] - a[1]).slice(0, 6);
+
+      if (sortedTriggers.length > 0) {
+        const triggerTableData = sortedTriggers.map(([trigger, count]) => {
+          const pct = Math.round((count / totalEpisodes) * 100);
+          return [trigger, count.toString(), `${pct}%`];
+        });
+
+        autoTable(doc, {
+          head: [['Trigger', 'Occurrences', '% of Episodes']],
+          body: triggerTableData,
+          startY: y,
+          margin: { left: margin, right: margin },
+          tableWidth: contentWidth * 0.6,
+          styles: { fontSize: 9, cellPadding: 4, textColor: PDF_COLORS.primary, lineColor: [220, 225, 235], lineWidth: 0.2 },
+          headStyles: {
+            fillColor: PDF_COLORS.primary,
+            textColor: PDF_COLORS.white,
+            fontStyle: 'bold',
+            fontSize: 9,
+          },
+          alternateRowStyles: { fillColor: [246, 248, 252] },
+          columnStyles: {
+            1: { halign: 'center', cellWidth: 28 },
+            2: { halign: 'center', cellWidth: 28 },
+          },
+        });
+
+        y = (doc as any).lastAutoTable.finalY + 6;
+      }
+
+      // ==================
+      // PAGE 2 — Episode Details
+      // ==================
+      doc.addPage();
+      drawPageHeader(2);
+      y = 56;
+
+      doc.setFontSize(13);
+      doc.setTextColor(...PDF_COLORS.primary);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Episode Detail Log', margin, y);
+      doc.setDrawColor(...PDF_COLORS.accent);
+      doc.setLineWidth(1);
+      doc.line(margin, y + 3, margin + 34, y + 3);
+      y += 10;
+
+      const tableData = filteredData.map((ep, i) => [
+        (i + 1).toString(),
+        ep.date,
+        ep.time,
+        ep.severity,
+        `${ep.intensity}/10`,
+        ep.duration,
+        ep.location || '—',
+        ep.triggers.slice(0, 2).join(', '),
+      ]);
+
+      autoTable(doc, {
+        head: [['#', 'Date', 'Time', 'Severity', 'Intensity', 'Duration', 'Location', 'Primary Triggers']],
+        body: tableData,
+        startY: y,
+        margin: { left: margin, right: margin },
+        styles: {
+          fontSize: 8,
+          cellPadding: 3.5,
+          textColor: PDF_COLORS.primary,
+          lineColor: [220, 225, 235],
+          lineWidth: 0.2,
+        },
+        headStyles: {
+          fillColor: PDF_COLORS.primary,
+          textColor: PDF_COLORS.white,
+          fontStyle: 'bold',
+          fontSize: 8,
+        },
+        alternateRowStyles: { fillColor: [246, 248, 252] },
+        columnStyles: {
+          0: { cellWidth: 8, halign: 'center' },
+          1: { cellWidth: 22 },
+          2: { cellWidth: 16, halign: 'center' },
+          3: { cellWidth: 20, halign: 'center' },
+          4: { cellWidth: 18, halign: 'center' },
+          5: { cellWidth: 18, halign: 'center' },
+          6: { cellWidth: 22 },
+          7: { cellWidth: 42 },
+        },
+        didParseCell: (data: any) => {
+          if (data.section === 'body' && data.column.index === 3) {
+            const val = data.cell.raw;
+            if (val === 'Severe') data.cell.styles.textColor = PDF_COLORS.danger;
+            else if (val === 'Moderate') data.cell.styles.textColor = PDF_COLORS.warning;
+            else data.cell.styles.textColor = PDF_COLORS.success;
+            data.cell.styles.fontStyle = 'bold';
+          }
+        },
+      });
+
+      // Draw footers on all pages
+      const totalPages = doc.getNumberOfPages();
+      for (let p = 1; p <= totalPages; p++) {
+        doc.setPage(p);
+        drawPageFooter(p, totalPages);
+      }
+
       doc.save(`velar-calendar-${periodLabel.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`);
       
       toast({
