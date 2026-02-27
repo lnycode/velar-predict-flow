@@ -6,10 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Calendar, CloudRain, Sun, Cloud, Snowflake, 
   AlertTriangle, TrendingUp, RefreshCw, MapPin,
-  Thermometer, Droplets, Wind, Eye
+  Thermometer, Droplets, Wind, Eye, FlaskConical
 } from 'lucide-react';
 
 interface WeatherForecast {
@@ -240,9 +241,7 @@ const RiskForecastComponent: React.FC = () => {
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="animate-pulse">
-                <div className="h-20 bg-secondary/30 rounded-lg"></div>
-              </div>
+              <Skeleton key={i} className="h-20 rounded-lg" />
             ))}
           </div>
         ) : (
@@ -345,9 +344,11 @@ const RiskForecastComponent: React.FC = () => {
           </div>
         )}
         
-        <div className="mt-4 p-3 bg-secondary/20 rounded-lg">
-          <p className="text-xs text-muted-foreground">
-            <strong>{t('common.beta')}:</strong> {t('forecast.disclaimer')}
+        {/* Simulated Data Banner */}
+        <div className="mt-4 p-3 bg-warning/10 border border-warning/30 rounded-lg flex items-center gap-2">
+          <FlaskConical className="w-4 h-4 text-warning flex-shrink-0" />
+          <p className="text-xs text-warning">
+            <strong>Simulated Data</strong> — These forecasts use generated sample data for demonstration. Connect real weather services for live risk estimation.
           </p>
         </div>
       </CardContent>

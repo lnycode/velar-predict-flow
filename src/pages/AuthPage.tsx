@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Mail, Lock, User, Rocket, Zap, Shield } from "lucide-react";
+import { Loader2, Mail, Lock, User, ShieldCheck, LogIn, Shield } from "lucide-react";
 
 export default function AuthPage() {
   const [loading, setLoading] = useState(false);
@@ -37,8 +37,8 @@ export default function AuthPage() {
       if (event === 'SIGNED_IN' && session) {
         navigate('/');
         toast({
-          title: "Welcome to Velar!",
-          description: "Successfully signed in. Your journey to migraine-free days begins now.",
+          title: "Welcome to Velar",
+          description: "You have been signed in successfully.",
         });
       }
     });
@@ -158,17 +158,17 @@ export default function AuthPage() {
         {/* Velar Logo */}
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center space-x-2">
-            <Rocket className="w-8 h-8 text-primary animate-pulse-glow" />
+            <ShieldCheck className="w-8 h-8 text-primary" />
             <h1 className="text-3xl font-bold text-foreground velar-text-glow">Velar</h1>
           </div>
-          <p className="text-muted-foreground">Advanced Migraine Intelligence Platform</p>
+          <p className="text-muted-foreground">Data-driven Migraine Risk Estimation Platform</p>
         </div>
 
         <Card className="velar-card border-border/50 shadow-glow">
           <CardHeader className="text-center">
-            <CardTitle className="text-xl">Join the Future of Migraine Care</CardTitle>
+            <CardTitle className="text-xl">Welcome to Velar</CardTitle>
             <CardDescription>
-              AI-powered predictions • Real-time weather analysis • Personalized insights
+              Pattern-based forecasting · Weather analysis · Decision support
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -232,8 +232,8 @@ export default function AuthPage() {
                       </>
                     ) : (
                       <>
-                        <Zap className="w-4 h-4 mr-2" />
-                        Sign In to Velar
+                        <LogIn className="w-4 h-4 mr-2" />
+                        Sign In
                       </>
                     )}
                   </Button>
@@ -328,8 +328,8 @@ export default function AuthPage() {
                       </>
                     ) : (
                       <>
-                        <Rocket className="w-4 h-4 mr-2" />
-                        Launch My Velar Journey
+                        <ShieldCheck className="w-4 h-4 mr-2" />
+                        Create Account
                       </>
                     )}
                   </Button>

@@ -34,20 +34,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               </div>
               
               <div className="flex items-center gap-3">
-                {/* Language Selector */}
                 <LanguageSelector />
-                
-                {/* Status Indicator */}
-                <div className="hidden md:flex items-center gap-2 bg-gradient-primary/20 text-cyan-400 px-4 py-2 rounded-full border border-cyan-400/30 backdrop-blur-sm">
-                  <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse-glow" />
-                  <span className="text-xs font-medium">Pattern Analysis Active</span>
-                </div>
-                
-                {/* Risk Alert */}
-                <div className="flex items-center gap-2 bg-gradient-to-r from-orange-500/20 to-red-500/20 text-orange-400 px-3 py-1.5 rounded-full border border-orange-500/30">
-                  <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />
-                  <span className="text-xs font-medium">Early-Warning Signal</span>
-                </div>
               </div>
             </div>
           </header>

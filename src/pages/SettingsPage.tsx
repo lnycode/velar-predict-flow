@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { User, Bell, Shield, Download, Trash2, Save, Loader2 } from "lucide-react";
+import { APP_VERSION } from "@/domain/constants";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -446,7 +447,7 @@ export default function SettingsPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
             <div>
-              <div className="text-lg font-bold text-primary">v2.1.0</div>
+              <div className="text-lg font-bold text-primary">v{APP_VERSION}</div>
               <div className="text-sm text-muted-foreground">{t('settings.appVersion')}</div>
             </div>
             <div>

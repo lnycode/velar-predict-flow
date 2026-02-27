@@ -141,8 +141,8 @@
       radial-gradient(1px 1px at 130px 80px, hsl(235 95% 80%), transparent),
       radial-gradient(2px 2px at 160px 30px, hsl(235 85% 70%), transparent);
     background-repeat: repeat;
-    background-size: 200px 100px;
-    opacity: 0.3;
+    background-size: 300px 150px;
+    opacity: 0.12;
     pointer-events: none;
     z-index: -1;
   }
