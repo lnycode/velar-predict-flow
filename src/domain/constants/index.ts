@@ -4,6 +4,15 @@
  */
 
 // ============================================================
+// App Metadata
+// ============================================================
+
+export const APP_VERSION = '3.0.0';
+export const APP_NAME = 'Velar';
+export const APP_TAGLINE = 'Data-driven Migraine Risk Estimation';
+export const COPYRIGHT_YEAR = new Date().getFullYear();
+
+// ============================================================
 // Migraine Entry Constants
 // ============================================================
 

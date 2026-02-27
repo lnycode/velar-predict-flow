@@ -13,6 +13,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
+import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Calendar, Activity, TrendingUp, Brain, 
   ArrowRight, Clock, AlertTriangle 
@@ -126,9 +128,7 @@ export default function Dashboard() {
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="animate-pulse">
-              <div className="h-32 bg-secondary/30 rounded-lg"></div>
-            </div>
+            <Skeleton key={i} className="h-32 rounded-lg" />
           ))}
         </div>
       </div>
@@ -143,18 +143,21 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold text-foreground mb-2">
-                {t('dashboard.title')} 
-                <span className="velar-text-glow ml-2">✨</span>
+                {t('dashboard.title')}
               </h1>
               <p className="text-muted-foreground">
                 {t('dashboard.subtitle')}
               </p>
             </div>
             
-            <div className="text-right">
-              <div className={`text-3xl font-bold mb-1 ${getRiskColor(dashboardData.currentRisk)}`}>
+            <div className="text-right flex flex-col items-end gap-1">
+              <div className={`text-3xl font-bold ${getRiskColor(dashboardData.currentRisk)}`}>
                 {dashboardData.currentRisk}/10
               </div>
+              <Progress
+                value={dashboardData.currentRisk * 10}
+                className="w-24 h-2"
+              />
               <div className="text-sm text-muted-foreground">
                 {t('dashboard.currentRisk')} ({getRiskLabel(dashboardData.currentRisk)})
               </div>

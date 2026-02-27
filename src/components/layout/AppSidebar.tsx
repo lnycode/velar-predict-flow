@@ -9,6 +9,7 @@ import {
   Satellite,
   Globe
 } from "lucide-react";
+import { APP_VERSION, APP_TAGLINE } from "@/domain/constants";
 import {
   Sidebar,
   SidebarContent,
@@ -143,8 +144,8 @@ export function AppSidebar() {
         {sidebarOpen && (
           <div className="mt-auto pt-6 animate-fade-in-up">
             <div className="text-xs text-gray-400 text-center">
-              <p className="text-cyan-400 font-medium">Velar v3.0</p>
-              <p className="mt-1">Data-driven Decision Support</p>
+              <p className="text-cyan-400 font-medium">Velar v{APP_VERSION}</p>
+              <p className="mt-1">{APP_TAGLINE}</p>
             </div>
           </div>
         )}
