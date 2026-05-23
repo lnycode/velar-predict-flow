@@ -6,6 +6,9 @@ import { DisclaimerFooter } from "@/components/layout/DisclaimerFooter";
 import { Brain, Lightbulb, Target, TrendingUp, Calendar, Clock, MapPin, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { WeeklyDigestCard } from "@/components/insights/WeeklyDigestCard";
+import { CorrelationCard } from "@/components/insights/CorrelationCard";
+import { ShareReportDialog } from "@/components/share/ShareReportDialog";
 
 interface PatternInsight {
   title: string;
@@ -267,17 +270,26 @@ export default function InsightsPage() {
     <div className="space-y-8 animate-fade-in-up">
       <div className="relative">
         <div className="absolute inset-0 bg-gradient-primary/10 blur-3xl rounded-full" />
-        <div className="relative">
-          <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
-            Pattern-based Insights
-          </h1>
-          <p className="text-cyan-400 text-lg">Data-driven migraine risk estimation and decision support</p>
-          <div className="flex items-center gap-2 mt-4">
-            <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse-glow" />
-            <span className="text-sm text-green-400 font-medium">Pattern Analysis Active • Real-time Monitoring</span>
+        <div className="relative flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+              Pattern-based Insights
+            </h1>
+            <p className="text-cyan-400 text-lg">Data-driven migraine risk estimation and decision support</p>
+            <div className="flex items-center gap-2 mt-4">
+              <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse-glow" />
+              <span className="text-sm text-green-400 font-medium">Pattern Analysis Active • Real-time Monitoring</span>
+            </div>
           </div>
+          <ShareReportDialog />
         </div>
       </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <WeeklyDigestCard />
+        <CorrelationCard />
+      </div>
+
 
       {/* Key Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

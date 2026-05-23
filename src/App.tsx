@@ -11,7 +11,6 @@ import { ErrorBoundary } from "./components/errors/ErrorBoundary";
 import { PageErrorBoundary } from "./components/errors/PageErrorBoundary";
 import { PageLoader } from "./components/ui/page-loader";
 
-// Lazy load all page components for code splitting
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const DiaryPage = lazy(() => import("./pages/DiaryPage"));
 const CalendarPage = lazy(() => import("./pages/CalendarPage"));
@@ -24,8 +23,29 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const ImportPage = lazy(() => import("./pages/ImportPage"));
+const SharedReportPage = lazy(() => import("./pages/SharedReportPage"));
 
 const queryClient = new QueryClient();
+
+const ChromeRoutes = () => (
+  <AppLayout>
+    <Routes>
+      <Route path="/" element={<ProtectedRoute><PageErrorBoundary><Dashboard /></PageErrorBoundary></ProtectedRoute>} />
+      <Route path="/auth" element={<PageErrorBoundary><AuthPage /></PageErrorBoundary>} />
+      <Route path="/diary" element={<ProtectedRoute><PageErrorBoundary><DiaryPage /></PageErrorBoundary></ProtectedRoute>} />
+      <Route path="/calendar" element={<ProtectedRoute><PageErrorBoundary><CalendarPage /></PageErrorBoundary></ProtectedRoute>} />
+      <Route path="/history" element={<ProtectedRoute><PageErrorBoundary><HistoryPage /></PageErrorBoundary></ProtectedRoute>} />
+      <Route path="/forecast" element={<ProtectedRoute><PageErrorBoundary><ForecastPage /></PageErrorBoundary></ProtectedRoute>} />
+      <Route path="/analytics" element={<ProtectedRoute><PageErrorBoundary><AnalyticsPage /></PageErrorBoundary></ProtectedRoute>} />
+      <Route path="/insights" element={<ProtectedRoute><PageErrorBoundary><InsightsPage /></PageErrorBoundary></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute><PageErrorBoundary><SettingsPage /></PageErrorBoundary></ProtectedRoute>} />
+      <Route path="/subscription-success" element={<ProtectedRoute><PageErrorBoundary><Dashboard /></PageErrorBoundary></ProtectedRoute>} />
+      <Route path="/privacy" element={<PageErrorBoundary><PrivacyPage /></PageErrorBoundary>} />
+      <Route path="/import" element={<ProtectedRoute><PageErrorBoundary><ImportPage /></PageErrorBoundary></ProtectedRoute>} />
+      <Route path="*" element={<PageErrorBoundary><NotFound /></PageErrorBoundary>} />
+    </Routes>
+  </AppLayout>
+);
 
 const App = () => (
   <ErrorBoundary>
@@ -35,97 +55,12 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <AppLayout>
-              <Suspense fallback={<PageLoader />}>
-                <Routes>
-                  <Route path="/" element={
-                    <ProtectedRoute>
-                      <PageErrorBoundary>
-                        <Dashboard />
-                      </PageErrorBoundary>
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/auth" element={
-                    <PageErrorBoundary>
-                      <AuthPage />
-                    </PageErrorBoundary>
-                  } />
-                  <Route path="/diary" element={
-                    <ProtectedRoute>
-                      <PageErrorBoundary>
-                        <DiaryPage />
-                      </PageErrorBoundary>
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/calendar" element={
-                    <ProtectedRoute>
-                      <PageErrorBoundary>
-                        <CalendarPage />
-                      </PageErrorBoundary>
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/history" element={
-                    <ProtectedRoute>
-                      <PageErrorBoundary>
-                        <HistoryPage />
-                      </PageErrorBoundary>
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/forecast" element={
-                    <ProtectedRoute>
-                      <PageErrorBoundary>
-                        <ForecastPage />
-                      </PageErrorBoundary>
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/analytics" element={
-                    <ProtectedRoute>
-                      <PageErrorBoundary>
-                        <AnalyticsPage />
-                      </PageErrorBoundary>
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/insights" element={
-                    <ProtectedRoute>
-                      <PageErrorBoundary>
-                        <InsightsPage />
-                      </PageErrorBoundary>
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/settings" element={
-                    <ProtectedRoute>
-                      <PageErrorBoundary>
-                        <SettingsPage />
-                      </PageErrorBoundary>
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/subscription-success" element={
-                    <ProtectedRoute>
-                      <PageErrorBoundary>
-                        <Dashboard />
-                      </PageErrorBoundary>
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/privacy" element={
-                    <PageErrorBoundary>
-                      <PrivacyPage />
-                    </PageErrorBoundary>
-                  } />
-                  <Route path="/import" element={
-                    <ProtectedRoute>
-                      <PageErrorBoundary>
-                        <ImportPage />
-                      </PageErrorBoundary>
-                    </ProtectedRoute>
-                  } />
-                  <Route path="*" element={
-                    <PageErrorBoundary>
-                      <NotFound />
-                    </PageErrorBoundary>
-                  } />
-                </Routes>
-              </Suspense>
-            </AppLayout>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route path="/share/:token" element={<PageErrorBoundary><SharedReportPage /></PageErrorBoundary>} />
+                <Route path="*" element={<ChromeRoutes />} />
+              </Routes>
+            </Suspense>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
