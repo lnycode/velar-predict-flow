@@ -106,8 +106,9 @@ const RiskForecastComponent: React.FC = () => {
         toast({
           title: t('forecast.loadError'),
           description: msg || t('common.error'),
-        variant: 'destructive',
-      });
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsLoading(false);
     }
