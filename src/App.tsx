@@ -22,6 +22,7 @@ const InsightsPage = lazy(() => import("./pages/InsightsPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
+const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 
 const queryClient = new QueryClient();
 
@@ -103,6 +104,11 @@ const App = () => (
                         <Dashboard />
                       </PageErrorBoundary>
                     </ProtectedRoute>
+                  } />
+                  <Route path="/privacy" element={
+                    <PageErrorBoundary>
+                      <PrivacyPage />
+                    </PageErrorBoundary>
                   } />
                   <Route path="*" element={
                     <PageErrorBoundary>

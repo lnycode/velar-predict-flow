@@ -10,8 +10,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Calendar, CloudRain, Sun, Cloud, Snowflake, 
   AlertTriangle, TrendingUp, RefreshCw, MapPin,
-  Thermometer, Droplets, Wind, Eye, FlaskConical
+  Thermometer, Droplets, Wind, Eye, ShieldCheck
 } from 'lucide-react';
+import { EvidenceTooltip } from './EvidenceTooltip';
+
+interface RiskFactor {
+  id: string;
+  label: string;
+  weight: number;
+}
 
 interface WeatherForecast {
   date: string;
@@ -25,7 +32,7 @@ interface WeatherForecast {
     uvIndex?: number;
     windSpeed?: number;
   };
-  factors: string[];
+  factors: RiskFactor[];
   recommendation: string;
 }
 
@@ -78,106 +85,30 @@ const RiskForecastComponent: React.FC = () => {
 
     setIsLoading(true);
     try {
-      // Get user profile for location
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('location_lat, location_lng, weather_sensitivity, known_triggers')
-        .eq('user_id', user.id)
-        .single();
+      const { data, error } = await supabase.functions.invoke('predict-migraine-risk', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
 
-      if (!profile?.location_lat || !profile?.location_lng) {
+      if (error) throw error;
+      if (!data?.forecasts) throw new Error('No forecast data returned');
+
+      setForecasts(data.forecasts as WeatherForecast[]);
+      setLastUpdate(new Date());
+    } catch (error: any) {
+      const msg = error.message || '';
+      if (msg.toLowerCase().includes('location')) {
         toast({
           title: t('forecast.locationRequired'),
           description: t('forecast.locationRequiredDesc'),
           variant: 'destructive',
         });
-        return;
-      }
-
-      // Get recent episodes count
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      
-      const { data: recentEpisodes } = await supabase
-        .from('migraine_entries')
-        .select('id')
-        .eq('user_id', user.id)
-        .gte('created_at', thirtyDaysAgo.toISOString());
-
-      // Generate forecasts for next 7 days
-      const mockForecasts: WeatherForecast[] = [];
-      
-      for (let i = 0; i < 7; i++) {
-        const date = new Date();
-        date.setDate(date.getDate() + i);
-        
-        // Simulate weather and risk prediction
-        const baseRisk = Math.floor(Math.random() * 10) + 1;
-        const weatherConditions = ['Clear', 'Clouds', 'Rain', 'Overcast'][Math.floor(Math.random() * 4)];
-        const temperature = 15 + Math.random() * 15; // 15-30°C
-        const humidity = 40 + Math.random() * 40; // 40-80%
-        const pressure = 990 + Math.random() * 40; // 990-1030 hPa
-        
-        // Adjust risk based on weather sensitivity
-        let adjustedRisk = baseRisk;
-        if (profile.weather_sensitivity === 'high') {
-          adjustedRisk += 2;
-        } else if (profile.weather_sensitivity === 'low') {
-          adjustedRisk -= 1;
-        }
-        
-        // Adjust for pressure changes (major trigger)
-        if (pressure < 1005) adjustedRisk += 2;
-        if (humidity > 70) adjustedRisk += 1;
-        
-        adjustedRisk = Math.max(1, Math.min(10, adjustedRisk));
-        
-        const factors = [];
-        if (pressure < 1005) factors.push(t('forecast.lowPressureSystem'));
-        if (humidity > 70) factors.push(t('forecast.highHumidity'));
-        if (temperature > 28) factors.push(t('forecast.highTemperatures'));
-        if (weatherConditions === 'Rain') factors.push(t('forecast.rainyWeather'));
-        
-        const triggers = profile.known_triggers?.split(', ') || [];
-        if (triggers.some(trigger => 
-          trigger.toLowerCase().includes('weather') || 
-          trigger.toLowerCase().includes('wetter')
-        )) {
-          factors.push(t('forecast.personalWeatherTrigger'));
-        }
-
-        const recommendation = adjustedRisk > 6 
-          ? t('forecast.highRiskRecommendation')
-          : adjustedRisk > 3 
-          ? t('forecast.mediumRiskRecommendation')
-          : t('forecast.lowRiskRecommendation');
-
-        mockForecasts.push({
-          date: date.toISOString().split('T')[0],
-          riskLevel: adjustedRisk,
-          confidence: 0.7 + Math.random() * 0.25, // 70-95% confidence
-          weather: {
-            temperature: Math.round(temperature * 10) / 10,
-            humidity: Math.round(humidity),
-            pressure: Math.round(pressure),
-            conditions: weatherConditions,
-            uvIndex: Math.floor(Math.random() * 11),
-            windSpeed: Math.floor(Math.random() * 25)
-          },
-          factors: factors.length > 0 ? factors : [t('forecast.normalConditions')],
-          recommendation
+      } else {
+        toast({
+          title: t('forecast.loadError'),
+          description: msg || t('common.error'),
+          variant: 'destructive',
         });
       }
-
-      setForecasts(mockForecasts);
-      setLastUpdate(new Date());
-      
-    } catch (error: any) {
-      toast({
-        title: t('forecast.loadError'),
-        description: error.message || t('common.error'),
-        variant: 'destructive',
-      });
     } finally {
       setIsLoading(false);
     }
@@ -317,9 +248,11 @@ const RiskForecastComponent: React.FC = () => {
                       </div>
                       <div className="flex flex-wrap gap-1">
                         {forecast.factors.map((factor, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs">
-                            {factor}
-                          </Badge>
+                          <EvidenceTooltip key={idx} factorId={factor.id}>
+                            <Badge variant="outline" className="text-xs cursor-help">
+                              {factor.label}
+                            </Badge>
+                          </EvidenceTooltip>
                         ))}
                       </div>
                     </div>
@@ -344,11 +277,11 @@ const RiskForecastComponent: React.FC = () => {
           </div>
         )}
         
-        {/* Simulated Data Banner */}
-        <div className="mt-4 p-3 bg-warning/10 border border-warning/30 rounded-lg flex items-center gap-2">
-          <FlaskConical className="w-4 h-4 text-warning flex-shrink-0" />
-          <p className="text-xs text-warning">
-            <strong>Simulated Data</strong> — These forecasts use generated sample data for demonstration. Connect real weather services for live risk estimation.
+        {/* Evidence-based footer */}
+        <div className="mt-4 p-3 bg-primary/5 border border-primary/20 rounded-lg flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-primary flex-shrink-0" />
+          <p className="text-xs text-muted-foreground">
+            Forecasts use real-time barometric data combined with your personal attack history. Click any risk factor for source citations.
           </p>
         </div>
       </CardContent>
