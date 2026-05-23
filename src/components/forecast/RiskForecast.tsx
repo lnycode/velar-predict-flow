@@ -10,8 +10,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Calendar, CloudRain, Sun, Cloud, Snowflake, 
   AlertTriangle, TrendingUp, RefreshCw, MapPin,
-  Thermometer, Droplets, Wind, Eye, FlaskConical
+  Thermometer, Droplets, Wind, Eye, ShieldCheck
 } from 'lucide-react';
+import { EvidenceTooltip } from './EvidenceTooltip';
+
+interface RiskFactor {
+  id: string;
+  label: string;
+  weight: number;
+}
 
 interface WeatherForecast {
   date: string;
