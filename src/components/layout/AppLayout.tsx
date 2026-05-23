@@ -14,7 +14,7 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="min-h-screen flex w-full bg-gradient-bg">
+      <div className="min-h-dvh flex w-full bg-gradient-bg">
         <AppSidebar />
         
         <div className="flex-1 flex flex-col">
@@ -22,9 +22,13 @@ export function AppLayout({ children }: AppLayoutProps) {
           <header className="sticky top-0 z-50 h-16 border-b border-white/10 bg-black/20 backdrop-blur-xl">
             <div className="flex items-center justify-between h-full px-6">
               <div className="flex items-center gap-4">
-                <SidebarTrigger className="lg:hidden p-2 hover:bg-primary/10 rounded-lg transition-colors">
-                  <Menu className="w-5 h-5 text-white" />
+                <SidebarTrigger
+                  aria-label="Toggle navigation"
+                  className="lg:hidden p-2 hover:bg-primary/10 rounded-lg transition-colors"
+                >
+                  <Menu className="w-5 h-5 text-white" aria-hidden="true" />
                 </SidebarTrigger>
+
                 
                 <div className="hidden sm:block">
                   <h2 className="text-lg font-bold text-white bg-gradient-primary bg-clip-text text-transparent">
