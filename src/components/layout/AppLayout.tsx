@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { LanguageSelector } from "./LanguageSelector";
+import { OfflineSyncIndicator } from "./OfflineSyncIndicator";
 import { Menu } from "lucide-react";
 
 interface AppLayoutProps {
@@ -34,6 +35,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               </div>
               
               <div className="flex items-center gap-3">
+                <OfflineSyncIndicator />
                 <LanguageSelector />
               </div>
             </div>
