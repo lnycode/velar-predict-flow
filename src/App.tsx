@@ -31,7 +31,6 @@ const ChromeRoutes = () => (
   <AppLayout>
     <Routes>
       <Route path="/" element={<ProtectedRoute><PageErrorBoundary><Dashboard /></PageErrorBoundary></ProtectedRoute>} />
-      <Route path="/auth" element={<PageErrorBoundary><AuthPage /></PageErrorBoundary>} />
       <Route path="/diary" element={<ProtectedRoute><PageErrorBoundary><DiaryPage /></PageErrorBoundary></ProtectedRoute>} />
       <Route path="/calendar" element={<ProtectedRoute><PageErrorBoundary><CalendarPage /></PageErrorBoundary></ProtectedRoute>} />
       <Route path="/history" element={<ProtectedRoute><PageErrorBoundary><HistoryPage /></PageErrorBoundary></ProtectedRoute>} />
@@ -47,6 +46,7 @@ const ChromeRoutes = () => (
   </AppLayout>
 );
 
+
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
@@ -57,10 +57,12 @@ const App = () => (
           <AuthProvider>
             <Suspense fallback={<PageLoader />}>
               <Routes>
+                <Route path="/auth" element={<PageErrorBoundary><AuthPage /></PageErrorBoundary>} />
                 <Route path="/share/:token" element={<PageErrorBoundary><SharedReportPage /></PageErrorBoundary>} />
                 <Route path="*" element={<ChromeRoutes />} />
               </Routes>
             </Suspense>
+
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
