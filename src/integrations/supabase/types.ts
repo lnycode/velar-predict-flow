@@ -89,6 +89,7 @@ export type Database = {
       migraine_entries: {
         Row: {
           created_at: string | null
+          cycle_day: number | null
           duration: number | null
           effectiveness: number | null
           forecast_match: boolean | null
@@ -107,6 +108,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          cycle_day?: number | null
           duration?: number | null
           effectiveness?: number | null
           forecast_match?: boolean | null
@@ -125,6 +127,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          cycle_day?: number | null
           duration?: number | null
           effectiveness?: number | null
           forecast_match?: boolean | null
@@ -148,12 +151,14 @@ export type Database = {
           ai_predictions_enabled: boolean | null
           created_at: string
           current_medications: string | null
+          cycle_length_days: number | null
           email: string
           email_notifications: boolean | null
           first_name: string | null
           id: string
           known_triggers: string | null
           last_name: string | null
+          last_period_start: string | null
           location_lat: number | null
           location_lng: number | null
           location_name: string | null
@@ -162,6 +167,7 @@ export type Database = {
           subscription_end: string | null
           subscription_tier: string | null
           timezone: string | null
+          track_cycle: boolean | null
           updated_at: string
           user_id: string
           weather_alerts: boolean | null
@@ -171,12 +177,14 @@ export type Database = {
           ai_predictions_enabled?: boolean | null
           created_at?: string
           current_medications?: string | null
+          cycle_length_days?: number | null
           email: string
           email_notifications?: boolean | null
           first_name?: string | null
           id?: string
           known_triggers?: string | null
           last_name?: string | null
+          last_period_start?: string | null
           location_lat?: number | null
           location_lng?: number | null
           location_name?: string | null
@@ -185,6 +193,7 @@ export type Database = {
           subscription_end?: string | null
           subscription_tier?: string | null
           timezone?: string | null
+          track_cycle?: boolean | null
           updated_at?: string
           user_id: string
           weather_alerts?: boolean | null
@@ -194,12 +203,14 @@ export type Database = {
           ai_predictions_enabled?: boolean | null
           created_at?: string
           current_medications?: string | null
+          cycle_length_days?: number | null
           email?: string
           email_notifications?: boolean | null
           first_name?: string | null
           id?: string
           known_triggers?: string | null
           last_name?: string | null
+          last_period_start?: string | null
           location_lat?: number | null
           location_lng?: number | null
           location_name?: string | null
@@ -208,10 +219,53 @@ export type Database = {
           subscription_end?: string | null
           subscription_tier?: string | null
           timezone?: string | null
+          track_cycle?: boolean | null
           updated_at?: string
           user_id?: string
           weather_alerts?: boolean | null
           weather_sensitivity?: string | null
+        }
+        Relationships: []
+      }
+      shared_reports: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          payload: Json
+          period_end: string
+          period_start: string
+          revoked: boolean
+          title: string
+          token: string
+          user_id: string
+          view_count: number
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          payload: Json
+          period_end: string
+          period_start: string
+          revoked?: boolean
+          title?: string
+          token: string
+          user_id: string
+          view_count?: number
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          payload?: Json
+          period_end?: string
+          period_start?: string
+          revoked?: boolean
+          title?: string
+          token?: string
+          user_id?: string
+          view_count?: number
         }
         Relationships: []
       }
@@ -257,12 +311,66 @@ export type Database = {
         }
         Relationships: []
       }
+      weekly_insights: {
+        Row: {
+          created_at: string
+          id: string
+          metrics: Json | null
+          model: string | null
+          period_end: string
+          period_start: string
+          summary: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metrics?: Json | null
+          model?: string | null
+          period_end: string
+          period_start: string
+          summary: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metrics?: Json | null
+          model?: string | null
+          period_end?: string
+          period_start?: string
+          summary?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_shared_report: {
+        Args: { _token: string }
+        Returns: {
+          created_at: string
+          expires_at: string
+          id: string
+          payload: Json
+          period_end: string
+          period_start: string
+          revoked: boolean
+          title: string
+          token: string
+          user_id: string
+          view_count: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "shared_reports"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       [_ in never]: never
