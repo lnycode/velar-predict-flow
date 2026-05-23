@@ -1,13 +1,14 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { 
-  Orbit, 
-  History, 
-  Settings2, 
+import {
+  Orbit,
+  History,
+  Settings2,
   Calendar,
   TrendingUp,
   Zap,
   Satellite,
-  Globe
+  Globe,
+  Upload,
 } from "lucide-react";
 import { APP_VERSION, APP_TAGLINE } from "@/domain/constants";
 import {
@@ -59,9 +60,15 @@ const navigationItems = [
     icon: Zap,
     description: "Decision Support"
   },
-  { 
-    title: "Settings", 
-    url: "/settings", 
+  {
+    title: "Import Data",
+    url: "/import",
+    icon: Upload,
+    description: "CSV from other apps"
+  },
+  {
+    title: "Settings",
+    url: "/settings",
     icon: Settings2,
     description: "Configuration"
   }

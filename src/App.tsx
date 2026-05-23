@@ -23,6 +23,7 @@ const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
+const ImportPage = lazy(() => import("./pages/ImportPage"));
 
 const queryClient = new QueryClient();
 
@@ -109,6 +110,13 @@ const App = () => (
                     <PageErrorBoundary>
                       <PrivacyPage />
                     </PageErrorBoundary>
+                  } />
+                  <Route path="/import" element={
+                    <ProtectedRoute>
+                      <PageErrorBoundary>
+                        <ImportPage />
+                      </PageErrorBoundary>
+                    </ProtectedRoute>
                   } />
                   <Route path="*" element={
                     <PageErrorBoundary>

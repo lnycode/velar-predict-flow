@@ -109,6 +109,31 @@ export async function createMigraineEntry(
   input: MigraineEntryInput
 ): Promise<Result<MigraineEntry>> {
   try {
+    // If offline, enqueue and return an optimistic placeholder
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      const { enqueueMigraineEntry } = await import('@/lib/offlineQueue');
+      const queueId = await enqueueMigraineEntry(userId, input);
+      const placeholder: MigraineEntry = {
+        id: queueId,
+        userId,
+        createdAt: new Date(),
+        severity: input.severity,
+        intensity: input.intensity,
+        duration: input.duration,
+        location: input.location || null,
+        note: input.note || null,
+        medicationTaken: input.medicationTaken || input.selectedMedications?.join(', ') || null,
+        effectiveness: input.effectiveness || null,
+        triggerDetected: (input.selectedTriggers?.length ?? 0) > 0,
+        forecastMatch: null,
+        temperature: null,
+        humidity: null,
+        pressure: null,
+        weatherType: null,
+      } as MigraineEntry;
+      return { success: true, data: placeholder };
+    }
+
     const dbEntry = {
       user_id: userId,
       created_at: new Date().toISOString(),
@@ -134,8 +159,11 @@ export async function createMigraineEntry(
       .single();
 
     if (error) {
-      logger.error('Failed to create migraine entry', error);
-      return { success: false, error: { code: 'CREATE_FAILED', message: error.message } };
+      // Network-style failure: queue and recover
+      const { enqueueMigraineEntry } = await import('@/lib/offlineQueue');
+      await enqueueMigraineEntry(userId, input);
+      logger.warn('Insert failed, queued for retry', { message: error.message });
+      return { success: false, error: { code: 'QUEUED_FOR_RETRY', message: 'Saved offline. Will sync when reconnected.' } };
     }
 
     return { success: true, data: mapDbEntryToMigraineEntry(data) };
