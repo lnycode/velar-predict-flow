@@ -4,19 +4,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { EmptyState } from '@/components/ui/empty-state';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { 
-  getMigraineEntries, 
-  deleteMigraineEntry, 
-  getMigraineStatistics 
+import { supabase } from '@/integrations/supabase/client';
+import {
+  getMigraineEntries,
+  deleteMigraineEntry,
+  getMigraineStatistics
 } from '@/domain/services';
 import type { MigraineEntry, MigraineStatistics } from '@/domain/types';
-import { 
-  Calendar, Search, Filter, Trash2, Edit, 
-  TrendingUp, BarChart3, Clock, MapPin 
+import {
+  Calendar, Search, Filter, Trash2, Edit,
+  TrendingUp, BarChart3, Clock, MapPin
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+
 
 export default function DiaryPage() {
   const { user } = useAuth();
@@ -65,18 +68,48 @@ export default function DiaryPage() {
     setShowNewEntryForm(false);
   }, [loadData]);
 
-  const handleDeleteEntry = useCallback(async (entryId: string) => {
+  const handleDeleteEntry = useCallback(async (entry: MigraineEntry) => {
     if (!user) return;
 
-    const result = await deleteMigraineEntry(entryId, user.id);
-    
+    const result = await deleteMigraineEntry(entry.id, user.id);
+
     if (result.success) {
-      toast.success(t('diaryPage.entryDeleted'));
+      toast.success(t('diaryPage.entryDeleted'), {
+        action: {
+          label: 'Undo',
+          onClick: async () => {
+            // Restore by re-inserting the row using the snapshot we have.
+            const { error } = await supabase.from('migraine_entries').insert({
+              user_id: user.id,
+              intensity: entry.intensity,
+              severity: entry.severity,
+              duration: entry.duration,
+              location: entry.location,
+              note: entry.note,
+              medication_taken: entry.medicationTaken,
+              effectiveness: entry.effectiveness,
+              trigger_detected: entry.triggerDetected,
+              pressure: entry.pressure,
+              humidity: entry.humidity,
+              temperature: entry.temperature,
+              weather_type: entry.weatherType,
+            });
+            if (error) {
+              toast.error('Could not undo delete');
+            } else {
+              toast.success('Entry restored');
+              loadData();
+            }
+          },
+        },
+        duration: 5000,
+      });
       loadData();
     } else {
       toast.error(t('diaryPage.errorDeleting'));
     }
   }, [user, loadData, t]);
+
 
   const filteredEntries = useMemo(() => 
     entries.filter(entry => 
@@ -221,26 +254,22 @@ export default function DiaryPage() {
               ))}
             </div>
           ) : filteredEntries.length === 0 ? (
-            <div className="text-center py-12">
-              <Calendar className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                {entries.length === 0 ? t('diaryPage.noEntriesYet') : t('diaryPage.noEntriesFound')}
-              </h3>
-              <p className="text-muted-foreground">
-                {entries.length === 0 
-                  ? t('diaryPage.noEntriesDesc')
-                  : t('diaryPage.tryOtherSearch')
-                }
-              </p>
-              {entries.length === 0 && (
-                <Button 
-                  onClick={() => setShowNewEntryForm(true)}
-                  className="velar-button-primary mt-4"
-                >
-                  {t('diaryPage.createFirstEntry')}
-                </Button>
-              )}
-            </div>
+            entries.length === 0 ? (
+              <EmptyState
+                icon={Calendar}
+                title={t('diaryPage.noEntriesYet')}
+                description={t('diaryPage.noEntriesDesc')}
+                actionLabel={t('diaryPage.createFirstEntry')}
+                onAction={() => setShowNewEntryForm(true)}
+              />
+            ) : (
+              <EmptyState
+                icon={Search}
+                title={t('diaryPage.noEntriesFound')}
+                description={t('diaryPage.tryOtherSearch')}
+              />
+            )
+
           ) : (
             <div className="space-y-4">
               {filteredEntries.map((entry) => (
@@ -306,18 +335,20 @@ export default function DiaryPage() {
                     </div>
                     
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Edit className="w-4 h-4" />
+                      <Button variant="ghost" size="sm" aria-label="Edit entry">
+                        <Edit className="w-4 h-4" aria-hidden="true" />
                       </Button>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="sm"
-                        onClick={() => handleDeleteEntry(entry.id)}
+                        onClick={() => handleDeleteEntry(entry)}
+                        aria-label="Delete entry"
                         className="text-destructive hover:text-destructive"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4" aria-hidden="true" />
                       </Button>
                     </div>
+
                   </div>
                 </div>
               ))}
