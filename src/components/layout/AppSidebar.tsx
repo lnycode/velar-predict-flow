@@ -143,9 +143,15 @@ export function AppSidebar() {
         {/* Footer */}
         {sidebarOpen && (
           <div className="mt-auto pt-6 animate-fade-in-up">
-            <div className="text-xs text-gray-400 text-center">
+            <div className="text-xs text-gray-400 text-center space-y-2">
               <p className="text-cyan-400 font-medium">Velar v{APP_VERSION}</p>
-              <p className="mt-1">{APP_TAGLINE}</p>
+              <p>{APP_TAGLINE}</p>
+              <NavLink
+                to="/privacy"
+                className="inline-block text-gray-500 hover:text-cyan-400 transition-colors underline-offset-2 hover:underline"
+              >
+                Privacy &amp; Data
+              </NavLink>
             </div>
           </div>
         )}
