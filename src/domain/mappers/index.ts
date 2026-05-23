@@ -120,6 +120,7 @@ export function mapMigraineEntryToDbInsert(
     humidity: entry.humidity,
     pressure: entry.pressure,
     weather_type: entry.weatherType,
+    cycle_day: (entry as any).cycleDay ?? null,
   };
 }
 
