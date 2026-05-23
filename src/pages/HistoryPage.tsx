@@ -248,6 +248,11 @@ function HistoryPageComponent() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
+        <Helmet>
+          <title>History — Velar</title>
+          <meta name="description" content="Searchable migraine history with filters, CSV export, and clinician-ready PDF reports." />
+          <link rel="canonical" href="https://velarv1.lovable.app/history" />
+        </Helmet>
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );

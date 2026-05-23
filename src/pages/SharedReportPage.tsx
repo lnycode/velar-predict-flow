@@ -45,6 +45,11 @@ export default function SharedReportPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
+        <Helmet>
+          <title>Shared Report — Velar</title>
+          <meta name="description" content="Securely shared migraine report for clinical review. Expires automatically." />
+          <link rel="canonical" href="https://velarv1.lovable.app/share" />
+        </Helmet>
         <Loader2 className="w-6 h-6 animate-spin text-primary" />
       </div>
     );

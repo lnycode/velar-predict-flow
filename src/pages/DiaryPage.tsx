@@ -134,6 +134,11 @@ export default function DiaryPage() {
 
   return (
     <div className="space-y-6">
+      <Helmet>
+        <title>Diary — Velar</title>
+        <meta name="description" content="Log migraine episodes with weather data, symptoms, triggers, and medication effectiveness." />
+        <link rel="canonical" href="https://velarv1.lovable.app/diary" />
+      </Helmet>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

@@ -150,6 +150,11 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen bg-gradient-bg flex items-center justify-center p-4">
+      <Helmet>
+        <title>Sign In — Velar</title>
+        <meta name="description" content="Sign in or create an account to start tracking migraine episodes and weather risk." />
+        <link rel="canonical" href="https://velarv1.lovable.app/auth" />
+      </Helmet>
       {/* Starry background effect */}
       <div className="fixed inset-0 opacity-30 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5" />

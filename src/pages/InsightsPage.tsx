@@ -262,6 +262,11 @@ export default function InsightsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
+        <Helmet>
+          <title>Insights — Velar</title>
+          <meta name="description" content="AI-powered pattern detection, trigger correlations, weekly digest, and shareable reports." />
+          <link rel="canonical" href="https://velarv1.lovable.app/insights" />
+        </Helmet>
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );

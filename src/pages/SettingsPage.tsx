@@ -198,6 +198,11 @@ export default function SettingsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
+        <Helmet>
+          <title>Settings — Velar</title>
+          <meta name="description" content="Profile, notifications, medical info, timezone, and account preference management." />
+          <link rel="canonical" href="https://velarv1.lovable.app/settings" />
+        </Helmet>
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );

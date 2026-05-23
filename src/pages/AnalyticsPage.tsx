@@ -133,6 +133,11 @@ function AnalyticsPageComponent() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
+        <Helmet>
+          <title>Analytics — Velar</title>
+          <meta name="description" content="Charts and statistics tracking migraine patterns, triggers, time-of-day trends, and severity." />
+          <link rel="canonical" href="https://velarv1.lovable.app/analytics" />
+        </Helmet>
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
