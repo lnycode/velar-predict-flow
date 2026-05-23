@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { MigraineDiary } from '@/components/migraine/MigraineDiary';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
