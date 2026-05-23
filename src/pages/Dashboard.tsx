@@ -22,6 +22,8 @@ import {
 import { VoiceCommandPanel } from "@/components/unique/VoiceCommandPanel";
 import { BiometricIntegration } from "@/components/unique/BiometricIntegration";
 import { SocialResearchHub } from "@/components/unique/SocialResearchHub";
+import { StreakCard } from "@/components/dashboard/StreakCard";
+
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -286,9 +288,12 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
+          <StreakCard />
+
           <Statistics />
         </div>
       </div>
+
 
       {/* Premium Features Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
