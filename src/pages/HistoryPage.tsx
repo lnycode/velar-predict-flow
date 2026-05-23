@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Download, FileText, Search, Filter, Calendar, Stethoscope, User, CalendarDays, Loader2 } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { generateMigrainePDF, MigrainEpisode } from "@/utils/pdfExport";
@@ -456,17 +458,22 @@ function HistoryPageComponent() {
         </CardHeader>
         <CardContent>
           {filteredEpisodes.length === 0 ? (
-            <div className="text-center py-12">
-              <Calendar className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                {migrainHistory.length === 0 ? t('history.noEpisodesRecorded') : t('history.noMatchingFilters')}
-              </h3>
-              <p className="text-muted-foreground">
-                {migrainHistory.length === 0 
-                  ? t('history.startLogging')
-                  : t('history.adjustFilters')}
-              </p>
-            </div>
+            migrainHistory.length === 0 ? (
+              <EmptyState
+                icon={Calendar}
+                title={t('history.noEpisodesRecorded')}
+                description={t('history.startLogging')}
+                actionLabel={t('diaryPage.createFirstEntry')}
+                actionHref="/diary"
+              />
+            ) : (
+              <EmptyState
+                icon={Filter}
+                title={t('history.noMatchingFilters')}
+                description={t('history.adjustFilters')}
+              />
+            )
+
           ) : (
             <div className="space-y-4">
               {filteredEpisodes.map((episode) => (
