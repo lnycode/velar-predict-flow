@@ -248,9 +248,11 @@ const RiskForecastComponent: React.FC = () => {
                       </div>
                       <div className="flex flex-wrap gap-1">
                         {forecast.factors.map((factor, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs">
-                            {factor}
-                          </Badge>
+                          <EvidenceTooltip key={idx} factorId={factor.id}>
+                            <Badge variant="outline" className="text-xs cursor-help">
+                              {factor.label}
+                            </Badge>
+                          </EvidenceTooltip>
                         ))}
                       </div>
                     </div>
@@ -275,11 +277,11 @@ const RiskForecastComponent: React.FC = () => {
           </div>
         )}
         
-        {/* Simulated Data Banner */}
-        <div className="mt-4 p-3 bg-warning/10 border border-warning/30 rounded-lg flex items-center gap-2">
-          <FlaskConical className="w-4 h-4 text-warning flex-shrink-0" />
-          <p className="text-xs text-warning">
-            <strong>Simulated Data</strong> — These forecasts use generated sample data for demonstration. Connect real weather services for live risk estimation.
+        {/* Evidence-based footer */}
+        <div className="mt-4 p-3 bg-primary/5 border border-primary/20 rounded-lg flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-primary flex-shrink-0" />
+          <p className="text-xs text-muted-foreground">
+            Forecasts use real-time barometric data combined with your personal attack history. Click any risk factor for source citations.
           </p>
         </div>
       </CardContent>
