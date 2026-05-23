@@ -24,6 +24,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const ImportPage = lazy(() => import("./pages/ImportPage"));
+const SharedReportPage = lazy(() => import("./pages/SharedReportPage"));
 
 const queryClient = new QueryClient();
 
@@ -35,11 +36,25 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <AppLayout>
-              <Suspense fallback={<PageLoader />}>
-                <Routes>
-                  <Route path="/" element={
-                    <ProtectedRoute>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                {/* Public, no app chrome */}
+                <Route path="/share/:token" element={
+                  <PageErrorBoundary>
+                    <SharedReportPage />
+                  </PageErrorBoundary>
+                } />
+                {/* All other routes wrapped in AppLayout */}
+                <Route path="*" element={
+                  <AppLayout>
+                    <Routes>
+                      <Route path="/" element={
+                        <ProtectedRoute>
+                          <PageErrorBoundary>
+                            <Dashboard />
+                          </PageErrorBoundary>
+                        </ProtectedRoute>
+                      } />
                       <PageErrorBoundary>
                         <Dashboard />
                       </PageErrorBoundary>
