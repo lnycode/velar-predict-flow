@@ -66,7 +66,7 @@ export async function flushQueue(): Promise<{ flushed: number; failed: number }>
       };
       const { error } = await supabase.from('migraine_entries').insert(dbEntry);
       if (error) {
-        logger.warn('Offline flush: insert failed, keeping in queue', error);
+        logger.warn('Offline flush: insert failed, keeping in queue', { message: error.message });
         remaining.push(item);
       } else {
         flushed++;
