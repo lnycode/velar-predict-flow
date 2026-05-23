@@ -32,7 +32,7 @@ interface WeatherForecast {
     uvIndex?: number;
     windSpeed?: number;
   };
-  factors: string[];
+  factors: RiskFactor[];
   recommendation: string;
 }
 
