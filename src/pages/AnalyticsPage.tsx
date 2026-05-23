@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState, useEffect, useCallback, useMemo, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -132,6 +133,11 @@ function AnalyticsPageComponent() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
+        <Helmet>
+          <title>Analytics — Velar</title>
+          <meta name="description" content="Charts and statistics tracking migraine patterns, triggers, time-of-day trends, and severity." />
+          <link rel="canonical" href="https://velarv1.lovable.app/analytics" />
+        </Helmet>
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -139,6 +145,11 @@ function AnalyticsPageComponent() {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
+      <Helmet>
+        <title>Analytics — Velar</title>
+        <meta name="description" content="Charts and statistics tracking migraine patterns, triggers, time-of-day trends, and severity." />
+        <link rel="canonical" href="https://velarv1.lovable.app/analytics" />
+      </Helmet>
       <div>
         <h1 className="text-2xl font-bold text-foreground">{t('analytics.title')}</h1>
         <p className="text-muted-foreground">{t('analytics.subtitle')}</p>

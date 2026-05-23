@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState, useEffect, useCallback, useMemo, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -247,6 +248,11 @@ function HistoryPageComponent() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
+        <Helmet>
+          <title>History — Velar</title>
+          <meta name="description" content="Searchable migraine history with filters, CSV export, and clinician-ready PDF reports." />
+          <link rel="canonical" href="https://velarv1.lovable.app/history" />
+        </Helmet>
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -254,6 +260,11 @@ function HistoryPageComponent() {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
+      <Helmet>
+        <title>History — Velar</title>
+        <meta name="description" content="Searchable migraine history with filters, CSV export, and clinician-ready PDF reports." />
+        <link rel="canonical" href="https://velarv1.lovable.app/history" />
+      </Helmet>
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>

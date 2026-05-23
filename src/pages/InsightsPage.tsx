@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -261,6 +262,11 @@ export default function InsightsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
+        <Helmet>
+          <title>Insights — Velar</title>
+          <meta name="description" content="AI-powered pattern detection, trigger correlations, weekly digest, and shareable reports." />
+          <link rel="canonical" href="https://velarv1.lovable.app/insights" />
+        </Helmet>
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -268,6 +274,11 @@ export default function InsightsPage() {
 
   return (
     <div className="space-y-8 animate-fade-in-up">
+      <Helmet>
+        <title>Insights — Velar</title>
+        <meta name="description" content="AI-powered pattern detection, trigger correlations, weekly digest, and shareable reports." />
+        <link rel="canonical" href="https://velarv1.lovable.app/insights" />
+      </Helmet>
       <div className="relative">
         <div className="absolute inset-0 bg-gradient-primary/10 blur-3xl rounded-full" />
         <div className="relative flex items-start justify-between gap-4 flex-wrap">

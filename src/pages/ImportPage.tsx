@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState, useCallback } from 'react';
 import Papa from 'papaparse';
 import { Link } from 'react-router-dom';
@@ -174,6 +175,11 @@ export default function ImportPage() {
 
   return (
     <main className="container mx-auto max-w-4xl px-4 py-8">
+      <Helmet>
+        <title>Import Data — Velar</title>
+        <meta name="description" content="Import migraine data from CSV files including Migraine Buddy and N1-Headache exports." />
+        <link rel="canonical" href="https://velarv1.lovable.app/import" />
+      </Helmet>
       <Link to="/settings" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4">
         <ArrowLeft className="mr-2 h-4 w-4" /> Back
       </Link>

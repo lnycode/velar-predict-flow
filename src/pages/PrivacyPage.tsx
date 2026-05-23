@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Shield, Lock, Database, Mail, Download, Trash2 } from "lucide-react";
@@ -52,6 +53,11 @@ export default function PrivacyPage() {
 
   return (
     <div className="max-w-3xl mx-auto py-8 space-y-6">
+      <Helmet>
+        <title>Privacy Policy — Velar</title>
+        <meta name="description" content="Data privacy policy, GDPR rights, data export options, and account deletion procedures." />
+        <link rel="canonical" href="https://velarv1.lovable.app/privacy" />
+      </Helmet>
       <header className="space-y-2">
         <h1 className="text-3xl font-bold flex items-center gap-3">
           <Shield className="w-8 h-8 text-primary" aria-hidden="true" />

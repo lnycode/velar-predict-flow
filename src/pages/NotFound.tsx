@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 
@@ -13,6 +14,11 @@ const NotFound = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <Helmet>
+        <title>Page Not Found — Velar</title>
+        <meta name="description" content="The requested page could not be found. Return to the Velar migraine tracker dashboard." />
+        <link rel="canonical" href="https://velarv1.lovable.app/404" />
+      </Helmet>
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4">404</h1>
         <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>

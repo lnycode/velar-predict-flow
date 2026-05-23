@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
@@ -128,6 +129,11 @@ export default function Dashboard() {
   if (isLoading) {
     return (
       <div className="space-y-6">
+        <Helmet>
+          <title>Dashboard — Velar</title>
+          <meta name="description" content="Overview of your migraine risk level, recent episodes, streak tracking, and quick actions." />
+          <link rel="canonical" href="https://velarv1.lovable.app/" />
+        </Helmet>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-32 rounded-lg" />
@@ -139,6 +145,11 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
+      <Helmet>
+        <title>Dashboard — Velar</title>
+        <meta name="description" content="Overview of your migraine risk level, recent episodes, streak tracking, and quick actions." />
+        <link rel="canonical" href="https://velarv1.lovable.app/" />
+      </Helmet>
       {/* Welcome Section */}
       <Card className="velar-card">
         <CardContent className="pt-6">

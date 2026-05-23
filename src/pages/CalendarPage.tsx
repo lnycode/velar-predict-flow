@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -655,6 +656,11 @@ export default function CalendarPage() {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
+      <Helmet>
+        <title>Calendar — Velar</title>
+        <meta name="description" content="Visual calendar of migraine episodes with PDF export and date-based episode review." />
+        <link rel="canonical" href="https://velarv1.lovable.app/calendar" />
+      </Helmet>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
