@@ -147,7 +147,7 @@ export function useWeatherAlerts(): UseWeatherAlertsReturn {
   const [isMonitoring, setIsMonitoring] = useState(false);
   
   const previousPressureRef = useRef<number | null>(null);
-  const monitoringIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const monitoringIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const userProfileRef = useRef<{ sensitivity: string; lat: number | null; lng: number | null } | null>(null);
 
   // Fetch user profile for sensitivity settings
