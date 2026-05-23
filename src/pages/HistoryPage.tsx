@@ -260,6 +260,11 @@ function HistoryPageComponent() {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
+      <Helmet>
+        <title>History — Velar</title>
+        <meta name="description" content="Searchable migraine history with filters, CSV export, and clinician-ready PDF reports." />
+        <link rel="canonical" href="https://velarv1.lovable.app/history" />
+      </Helmet>
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>

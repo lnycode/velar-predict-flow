@@ -210,6 +210,11 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
+      <Helmet>
+        <title>Settings — Velar</title>
+        <meta name="description" content="Profile, notifications, medical info, timezone, and account preference management." />
+        <link rel="canonical" href="https://velarv1.lovable.app/settings" />
+      </Helmet>
       <div>
         <h1 className="text-2xl font-bold text-foreground">{t('settings.title')}</h1>
         <p className="text-muted-foreground">{t('settings.subtitle')}</p>

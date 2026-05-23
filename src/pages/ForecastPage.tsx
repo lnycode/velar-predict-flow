@@ -223,6 +223,11 @@ export default function ForecastPage() {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
+      <Helmet>
+        <title>Forecast — Velar</title>
+        <meta name="description" content="7-day weather-aware migraine risk forecast with daily recommendations and alert settings." />
+        <link rel="canonical" href="https://velarv1.lovable.app/forecast" />
+      </Helmet>
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-foreground">Risk Estimation & Weather</h1>

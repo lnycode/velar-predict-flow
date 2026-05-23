@@ -58,6 +58,11 @@ export default function SharedReportPage() {
   if (error || !report) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-6">
+        <Helmet>
+          <title>Shared Report — Velar</title>
+          <meta name="description" content="Securely shared migraine report for clinical review. Expires automatically." />
+          <link rel="canonical" href="https://velarv1.lovable.app/share" />
+        </Helmet>
         <Card className="max-w-md w-full">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -75,6 +80,11 @@ export default function SharedReportPage() {
 
   return (
     <div className="min-h-screen bg-background py-10 px-4">
+      <Helmet>
+        <title>Shared Report — Velar</title>
+        <meta name="description" content="Securely shared migraine report for clinical review. Expires automatically." />
+        <link rel="canonical" href="https://velarv1.lovable.app/share" />
+      </Helmet>
       <div className="max-w-3xl mx-auto space-y-6">
         <Card>
           <CardHeader>

@@ -274,6 +274,11 @@ export default function InsightsPage() {
 
   return (
     <div className="space-y-8 animate-fade-in-up">
+      <Helmet>
+        <title>Insights — Velar</title>
+        <meta name="description" content="AI-powered pattern detection, trigger correlations, weekly digest, and shareable reports." />
+        <link rel="canonical" href="https://velarv1.lovable.app/insights" />
+      </Helmet>
       <div className="relative">
         <div className="absolute inset-0 bg-gradient-primary/10 blur-3xl rounded-full" />
         <div className="relative flex items-start justify-between gap-4 flex-wrap">

@@ -145,6 +145,11 @@ function AnalyticsPageComponent() {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
+      <Helmet>
+        <title>Analytics — Velar</title>
+        <meta name="description" content="Charts and statistics tracking migraine patterns, triggers, time-of-day trends, and severity." />
+        <link rel="canonical" href="https://velarv1.lovable.app/analytics" />
+      </Helmet>
       <div>
         <h1 className="text-2xl font-bold text-foreground">{t('analytics.title')}</h1>
         <p className="text-muted-foreground">{t('analytics.subtitle')}</p>

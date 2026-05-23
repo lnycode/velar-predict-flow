@@ -145,6 +145,11 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
+      <Helmet>
+        <title>Dashboard — Velar</title>
+        <meta name="description" content="Overview of your migraine risk level, recent episodes, streak tracking, and quick actions." />
+        <link rel="canonical" href="https://velarv1.lovable.app/" />
+      </Helmet>
       {/* Welcome Section */}
       <Card className="velar-card">
         <CardContent className="pt-6">
